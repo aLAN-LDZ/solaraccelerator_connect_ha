@@ -70,9 +70,15 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         """
         self._host = discovery_info.host
         self._async_abort_entries_match({CONF_HOST: self._host})
+        # Kafelek „Wykryto" rysuje się ZANIM poznamy falownik: `/api/status`
+        # jest za hasłem portalu, więc przed autoryzacją bramka nie zdradza
+        # nawet modelu. Do czasu udanego odpytania pokazujemy to, co daje samo
+        # rozgłoszenie mDNS — nazwę hosta i adres. Bez tego HA nie ma czego
+        # wstawić w `flow_title` i wypisuje surową domenę integracji.
+        self._set_title(discovery_info.hostname)
 
         errors: dict[str, str] = {}
-        result = await self._async_probe(errors, discovery=True)
+        result = await self._async_probe(errors)
         if result is not None:
             return result
         if "auth" in errors.values() or errors.get("base") == "invalid_auth":
@@ -164,9 +170,7 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             async_get_clientsession(self.hass), self._host, self._password
         )
 
-    async def _async_probe(
-        self, errors: dict[str, str], discovery: bool = False
-    ) -> ConfigFlowResult | None:
+    async def _async_probe(self, errors: dict[str, str]) -> ConfigFlowResult | None:
         """Sprawdza kandydata i — gdy się uda — prowadzi do kroku przedrostka.
 
         Zwraca `None`, gdy trzeba jeszcze raz pokazać formularz; `errors` jest
@@ -192,13 +196,27 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(unique.lower())
         self._abort_if_unique_id_configured(updates={CONF_HOST: self._host})
 
-        if discovery:
-            self.context["title_placeholders"] = {"name": self._title()}
+        # Po autoryzacji znamy już falownik — kafelek wykrycia dostaje jego
+        # nazwę w miejsce hosta z mDNS. Odświeżamy po KAŻDYM udanym odpytaniu,
+        # bo przy bramce z hasłem sukces przychodzi dopiero z kroku hasła.
+        self._set_title()
         return await self.async_step_prefix()
 
     def _title(self) -> str:
         name = str(self._status.get("inverter_name") or "").strip()
         return name or "SolarAccelerator Connect"
+
+    def _set_title(self, fallback_hostname: str = "") -> None:
+        """Wypełnia `flow_title` — wzorzec „nazwa (adres)", jak w innych
+        integracjach wykrywanych po sieci."""
+        name = str(self._status.get("inverter_name") or "").strip()
+        if not name and fallback_hostname:
+            # "solaraccelerator-connect.local." → "solaraccelerator-connect"
+            name = fallback_hostname.rstrip(".").removesuffix(".local")
+        self.context["title_placeholders"] = {
+            "name": name or "SolarAccelerator Connect",
+            "host": self._host,
+        }
 
     def _default_prefix(self) -> str:
         """Producent falownika, np. `deye` — konwencja znana z Solarmana."""

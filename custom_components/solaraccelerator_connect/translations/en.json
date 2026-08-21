@@ -1,5 +1,7 @@
 {
+  "title": "SolarAccelerator Connect",
   "config": {
+    "flow_title": "{name} ({host})",
     "step": {
       "user": {
         "title": "SolarAccelerator Connect gateway",
