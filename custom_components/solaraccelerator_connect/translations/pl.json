@@ -208,14 +208,14 @@
       "inverter_status": {
         "name": "Stan falownika",
         "state": {
-          "off": "Wyłączony",
-          "inverter": "Falownik",
-          "grid": "Sieć",
-          "inverter_grid": "Falownik + sieć",
-          "generator": "Generator",
-          "inverter_generator": "Falownik + generator",
-          "grid_generator": "Sieć + generator",
-          "inverter_grid_generator": "Falownik + sieć + generator"
+          "Off": "Wyłączony",
+          "Inverter": "Falownik",
+          "Grid": "Sieć",
+          "Inverter-Grid": "Falownik + sieć",
+          "Generator": "Generator",
+          "Inverter-Gen": "Falownik + generator",
+          "Grid-Generator": "Sieć + generator",
+          "Inv-Grid-Gen": "Falownik + sieć + generator"
         }
       },
       "inverter_voltage_l1": {
@@ -338,11 +338,11 @@
       "running_status": {
         "name": "Stan pracy",
         "state": {
-          "standby": "Czuwanie",
-          "selfcheck": "Autotest",
-          "normal": "Praca normalna",
-          "alarm": "Alarm",
-          "fault": "Awaria"
+          "Standby": "Czuwanie",
+          "Self-test": "Autotest",
+          "Normal": "Praca normalna",
+          "Alarm": "Alarm",
+          "Fault": "Awaria"
         }
       },
       "set_export_surplus_power": {
@@ -439,12 +439,7 @@
         "name": "Rejestr tou_config"
       },
       "set_work_mode": {
-        "name": "Tryb pracy",
-        "state": {
-          "selling_first": "Sprzedaż nadwyżek",
-          "zero_export_to_load": "Zero eksportu (odbiory)",
-          "zero_export_to_ct": "Zero eksportu (CT)"
-        }
+        "name": "Tryb pracy"
       },
       "total_battery_charge": {
         "name": "Całkowite ładowanie baterii"

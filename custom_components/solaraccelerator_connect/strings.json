@@ -47,40 +47,40 @@
   "entity": {
     "sensor": {
       "battery2_current": {
-        "name": "Battery 2 current"
+        "name": "Battery 2 Current"
       },
       "battery2_power": {
-        "name": "Battery 2 power"
+        "name": "Battery 2 Power"
       },
       "battery2_soc": {
-        "name": "Battery 2 SOC"
+        "name": "Battery 2"
       },
       "battery2_temperature": {
-        "name": "Battery 2 temperature"
+        "name": "Battery 2 Temperature"
       },
       "battery2_voltage": {
-        "name": "Battery 2 voltage"
+        "name": "Battery 2 Voltage"
       },
       "battery_corrected_capacity": {
-        "name": "Battery corrected capacity"
+        "name": "Battery Corrected Capacity"
       },
       "battery_current": {
-        "name": "Battery current"
+        "name": "Battery Current"
       },
       "battery_power": {
-        "name": "Battery power"
+        "name": "Battery Power"
       },
       "battery_soc": {
-        "name": "Battery SOC"
+        "name": "Battery"
       },
       "battery_soh": {
         "name": "Battery SOH"
       },
       "battery_temp": {
-        "name": "Battery temperature"
+        "name": "Battery Temperature"
       },
       "battery_voltage": {
-        "name": "Battery voltage"
+        "name": "Battery Voltage"
       },
       "blocks_ok": {
         "name": "Blocks read"
@@ -92,49 +92,49 @@
         "name": "Read cycle time"
       },
       "daily_generator_production": {
-        "name": "Daily generator production"
+        "name": "Generator Energy - today"
       },
       "day_battery_charge": {
-        "name": "Daily battery charge"
+        "name": "Today Battery Charge"
       },
       "day_battery_discharge": {
-        "name": "Daily battery discharge"
+        "name": "Today Battery Discharge"
       },
       "day_grid_export": {
-        "name": "Daily grid export"
+        "name": "Today Energy Export"
       },
       "day_grid_import": {
-        "name": "Daily grid import"
+        "name": "Today Energy Import"
       },
       "day_load_energy": {
-        "name": "Daily load energy"
+        "name": "Today Load Consumption"
       },
       "day_pv_energy": {
-        "name": "Daily PV energy"
+        "name": "Today Production"
       },
       "dc_transformer_temp": {
-        "name": "DC transformer temperature"
+        "name": "DC Temperature"
       },
       "external_ct_l1_current": {
-        "name": "External CT L1 current"
+        "name": "External CT1 Current"
       },
       "external_ct_l1_power": {
-        "name": "External CT L1 power"
+        "name": "External CT1 Power"
       },
       "external_ct_l2_current": {
-        "name": "External CT L2 current"
+        "name": "External CT2 Current"
       },
       "external_ct_l2_power": {
-        "name": "External CT L2 power"
+        "name": "External CT2 Power"
       },
       "external_ct_l3_current": {
-        "name": "External CT L3 current"
+        "name": "External CT3 Current"
       },
       "external_ct_l3_power": {
-        "name": "External CT L3 power"
+        "name": "External CT3 Power"
       },
       "external_ct_power": {
-        "name": "External CT power"
+        "name": "External Power"
       },
       "failed_cycles": {
         "name": "Consecutive failed cycles"
@@ -146,86 +146,76 @@
         "name": "Free memory"
       },
       "grid_ct_power_l1": {
-        "name": "CT L1 power"
+        "name": "Internal CT1 Power"
       },
       "grid_ct_power_l2": {
-        "name": "CT L2 power"
+        "name": "Internal CT2 Power"
       },
       "grid_ct_power_l3": {
-        "name": "CT L3 power"
+        "name": "Internal CT3 Power"
       },
       "grid_frequency": {
-        "name": "Grid frequency"
+        "name": "Grid Frequency"
       },
       "grid_l1_power": {
-        "name": "Grid L1 power"
+        "name": "Grid L1 Power"
       },
       "grid_l1_voltage": {
-        "name": "Grid L1 voltage"
+        "name": "Grid L1 Voltage"
       },
       "grid_l2_power": {
-        "name": "Grid L2 power"
+        "name": "Grid L2 Power"
       },
       "grid_l2_voltage": {
-        "name": "Grid L2 voltage"
+        "name": "Grid L2 Voltage"
       },
       "grid_l3_power": {
-        "name": "Grid L3 power"
+        "name": "Grid L3 Power"
       },
       "grid_l3_voltage": {
-        "name": "Grid L3 voltage"
+        "name": "Grid L3 Voltage"
       },
       "grid_power": {
-        "name": "Grid power"
+        "name": "Grid Power"
       },
       "grid_power_factor": {
-        "name": "Power factor"
+        "name": "Grid Power Factor"
       },
       "internal_ct_l1_current": {
-        "name": "Internal CT L1 current"
+        "name": "Internal CT1 Current"
       },
       "internal_ct_l2_current": {
-        "name": "Internal CT L2 current"
+        "name": "Internal CT2 Current"
       },
       "internal_ct_l3_current": {
-        "name": "Internal CT L3 current"
+        "name": "Internal CT3 Current"
       },
       "internal_ct_power": {
-        "name": "Internal CT power"
+        "name": "Internal Power"
       },
       "inverter_current_l1": {
-        "name": "Inverter L1 current"
+        "name": "Output L1 Current"
       },
       "inverter_current_l2": {
-        "name": "Inverter L2 current"
+        "name": "Output L2 Current"
       },
       "inverter_current_l3": {
-        "name": "Inverter L3 current"
+        "name": "Output L3 Current"
       },
       "inverter_power": {
-        "name": "Inverter power"
+        "name": "Power"
       },
       "inverter_status": {
-        "name": "Inverter status",
-        "state": {
-          "off": "Off",
-          "inverter": "Inverter",
-          "grid": "Grid",
-          "inverter_grid": "Inverter-Grid",
-          "generator": "Generator",
-          "inverter_generator": "Inverter-Generator",
-          "grid_generator": "Grid-Generator",
-          "inverter_grid_generator": "Inverter-Grid-Generator"
-        }
+        "name": "Device Relay"
       },
       "inverter_voltage_l1": {
-        "name": "Inverter L1 voltage"
+        "name": "Output L1 Voltage"
       },
       "inverter_voltage_l2": {
-        "name": "Inverter L2 voltage"
+        "name": "Output L2 Voltage"
       },
       "inverter_voltage_l3": {
-        "name": "Inverter L3 voltage"
+        "name": "Output L3 Voltage"
       },
       "largest_free_block": {
         "name": "Largest free block"
@@ -237,40 +227,40 @@
         "name": "Read interval"
       },
       "load_frequency": {
-        "name": "Load frequency"
+        "name": "Load Frequency"
       },
       "load_l1_voltage": {
-        "name": "Load L1 voltage"
+        "name": "Load L1 Voltage"
       },
       "load_l2_voltage": {
-        "name": "Load L2 voltage"
+        "name": "Load L2 Voltage"
       },
       "load_l3_voltage": {
-        "name": "Load L3 voltage"
+        "name": "Load L3 Voltage"
       },
       "load_power": {
-        "name": "Load power"
+        "name": "Load Power"
       },
       "load_power_l1": {
-        "name": "Load L1 power"
+        "name": "Load L1 Power"
       },
       "load_power_l2": {
-        "name": "Load L2 power"
+        "name": "Load L2 Power"
       },
       "load_power_l3": {
-        "name": "Load L3 power"
+        "name": "Load L3 Power"
       },
       "load_ups_l1_power": {
-        "name": "UPS L1 power"
+        "name": "Load UPS L1 Power"
       },
       "load_ups_l2_power": {
-        "name": "UPS L2 power"
+        "name": "Load UPS L2 Power"
       },
       "load_ups_l3_power": {
-        "name": "UPS L3 power"
+        "name": "Load UPS L3 Power"
       },
       "load_ups_power": {
-        "name": "UPS power"
+        "name": "Load UPS Power"
       },
       "map_version": {
         "name": "Register map version"
@@ -279,122 +269,115 @@
         "name": "Metric count"
       },
       "output_frequency": {
-        "name": "Output frequency"
+        "name": "Output Frequency"
       },
       "output_l1_power": {
-        "name": "Output L1 power"
+        "name": "Output L1 Power"
       },
       "output_l2_power": {
-        "name": "Output L2 power"
+        "name": "Output L2 Power"
       },
       "output_l3_power": {
-        "name": "Output L3 power"
+        "name": "Output L3 Power"
       },
       "poll_interval": {
         "name": "Poll interval"
       },
       "pv1_current": {
-        "name": "PV1 current"
+        "name": "PV1 Current"
       },
       "pv1_power": {
-        "name": "PV1 power"
+        "name": "PV1 Power"
       },
       "pv1_voltage": {
-        "name": "PV1 voltage"
+        "name": "PV1 Voltage"
       },
       "pv2_current": {
-        "name": "PV2 current"
+        "name": "PV2 Current"
       },
       "pv2_power": {
-        "name": "PV2 power"
+        "name": "PV2 Power"
       },
       "pv2_voltage": {
-        "name": "PV2 voltage"
+        "name": "PV2 Voltage"
       },
       "pv3_current": {
-        "name": "PV3 current"
+        "name": "PV3 Current"
       },
       "pv3_power": {
-        "name": "PV3 power"
+        "name": "PV3 Power"
       },
       "pv3_voltage": {
-        "name": "PV3 voltage"
+        "name": "PV3 Voltage"
       },
       "pv4_current": {
-        "name": "PV4 current"
+        "name": "PV4 Current"
       },
       "pv4_power": {
-        "name": "PV4 power"
+        "name": "PV4 Power"
       },
       "pv4_voltage": {
-        "name": "PV4 voltage"
+        "name": "PV4 Voltage"
       },
       "radiator_temp": {
-        "name": "Radiator temperature"
+        "name": "Temperature"
       },
       "rssi": {
         "name": "Wi-Fi signal strength"
       },
       "running_status": {
-        "name": "Running status",
-        "state": {
-          "standby": "Standby",
-          "selfcheck": "Self-check",
-          "normal": "Normal",
-          "alarm": "Alarm",
-          "fault": "Fault"
-        }
+        "name": "Device State"
       },
       "set_export_surplus_power": {
-        "name": "Export surplus power limit"
+        "name": "Export Surplus Power"
       },
       "set_gen_config": {
-        "name": "Register gen_config"
+        "name": "Generator Config Register"
       },
       "set_grid_peak_shaving_power": {
-        "name": "Grid peak shaving power"
+        "name": "Grid Peak shaving"
       },
       "set_max_charge_current": {
-        "name": "Max charge current"
+        "name": "Battery Max Charging Current"
       },
       "set_max_discharge_current": {
-        "name": "Max discharge current"
+        "name": "Battery Max Discharging Current"
       },
       "set_program_charging_1": {
-        "name": "Program 1 grid charging"
+        "name": "Program 1 Charging"
       },
       "set_program_charging_2": {
-        "name": "Program 2 grid charging"
+        "name": "Program 2 Charging"
       },
       "set_program_charging_3": {
-        "name": "Program 3 grid charging"
+        "name": "Program 3 Charging"
       },
       "set_program_charging_4": {
-        "name": "Program 4 grid charging"
+        "name": "Program 4 Charging"
       },
       "set_program_charging_5": {
-        "name": "Program 5 grid charging"
+        "name": "Program 5 Charging"
       },
       "set_program_charging_6": {
-        "name": "Program 6 grid charging"
+        "name": "Program 6 Charging"
       },
       "set_program_power_1": {
-        "name": "Program 1 power"
+        "name": "Program 1 Power"
       },
       "set_program_power_2": {
-        "name": "Program 2 power"
+        "name": "Program 2 Power"
       },
       "set_program_power_3": {
-        "name": "Program 3 power"
+        "name": "Program 3 Power"
       },
       "set_program_power_4": {
-        "name": "Program 4 power"
+        "name": "Program 4 Power"
       },
       "set_program_power_5": {
-        "name": "Program 5 power"
+        "name": "Program 5 Power"
       },
       "set_program_power_6": {
-        "name": "Program 6 power"
+        "name": "Program 6 Power"
       },
       "set_program_soc_1": {
         "name": "Program 1 SOC"
@@ -415,57 +398,52 @@
         "name": "Program 6 SOC"
       },
       "set_program_time_1": {
-        "name": "Program 1 time"
+        "name": "Program 1 Time"
       },
       "set_program_time_2": {
-        "name": "Program 2 time"
+        "name": "Program 2 Time"
       },
       "set_program_time_3": {
-        "name": "Program 3 time"
+        "name": "Program 3 Time"
       },
       "set_program_time_4": {
-        "name": "Program 4 time"
+        "name": "Program 4 Time"
       },
       "set_program_time_5": {
-        "name": "Program 5 time"
+        "name": "Program 5 Time"
       },
       "set_program_time_6": {
-        "name": "Program 6 time"
+        "name": "Program 6 Time"
       },
       "set_pv_power": {
-        "name": "Declared PV power"
+        "name": "PV Power"
       },
       "set_tou_config": {
-        "name": "Register tou_config"
+        "name": "Time of Use Register"
       },
       "set_work_mode": {
-        "name": "Work mode",
-        "state": {
-          "selling_first": "Selling first",
-          "zero_export_to_load": "Zero export to load",
-          "zero_export_to_ct": "Zero export to CT"
-        }
+        "name": "Work Mode"
       },
       "total_battery_charge": {
-        "name": "Total battery charge"
+        "name": "Total Battery Charge"
       },
       "total_battery_discharge": {
-        "name": "Total battery discharge"
+        "name": "Total Battery Discharge"
       },
       "total_consumption": {
-        "name": "Total consumption"
+        "name": "Total Load Consumption"
       },
       "total_energy_bought": {
-        "name": "Total energy bought"
+        "name": "Total Energy Import"
       },
       "total_energy_sold": {
-        "name": "Total energy sold"
+        "name": "Total Energy Export"
       },
       "total_generator_production": {
-        "name": "Total generator production"
+        "name": "Generator Energy"
       },
       "total_pv_generation": {
-        "name": "Total PV generation"
+        "name": "Total Production"
       },
       "uptime": {
         "name": "Gateway uptime"

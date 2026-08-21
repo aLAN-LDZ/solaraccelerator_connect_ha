@@ -71,12 +71,13 @@ class SaConnectMetricSensor(SaConnectEntity, SensorEntity):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
         if spec.options:
             self._attr_options = sorted(set(spec.options.values()))
+        self._attr_icon = spec.icon
         if spec.translation_key:
             self._attr_translation_key = spec.translation_key
         else:
             # Klucz spoza katalogu — nazwa z humanizacji, żeby encja była
-            # użyteczna zanim ktoś dopisze jej tłumaczenie.
-            self._attr_name = spec.name_en
+            # użyteczna zanim ktoś dopisze ją do katalogu.
+            self._attr_name = spec.name
 
     @property
     def available(self) -> bool:

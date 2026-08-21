@@ -4,14 +4,18 @@ Podział odpowiedzialności, na którym stoi ta integracja:
 
 * **bramka** odpowiada za odczyt i przeskalowanie wartości — na zewnątrz
   oddaje wyłącznie `{key, value}`.
-* **ta integracja** odpowiada za prezentację — nazwę, jednostkę,
+* **ta integracja** odpowiada za prezentację — nazwę, jednostkę, ikonę,
   `device_class`, `state_class` i słowniki enumów.
 
-Dzięki temu nie ma dwóch źródeł tej samej prawdy. Klucz, który pojawi się
-w odczytach bramki później, zadziała tutaj OD RAZU dzięki `_heuristic()` —
-dostanie poprawną jednostkę i klasę, a jedyne czego mu zabraknie, to ładna
-nazwa. `scripts/check_catalog.py` wypisuje takie klucze, żeby rozjazd był
-widoczny, a nie cichy.
+Nazwy, jednostki i ikony trzymają się konwencji przyjętej w Home Assistancie
+dla falowników Deye odczytywanych po Modbusie. Dzięki temu dashboard zbudowany
+pod inne źródło danych wygląda tak samo po przejściu na bramkę. Nazwy są
+angielskie i celowo nie są tłumaczone — takie widzi użytkownik w tej konwencji.
+
+Klucz, który pojawi się w odczytach bramki później, zadziała OD RAZU dzięki
+`_heuristic()` — dostanie poprawną jednostkę i klasę, a zabraknie mu tylko
+ładnej nazwy. `scripts/check_catalog.py` wypisuje takie klucze, żeby rozjazd
+był widoczny, a nie cichy.
 """
 
 from __future__ import annotations
@@ -38,11 +42,11 @@ TOTAL_INCREASING = SensorStateClass.TOTAL_INCREASING
 class MetricDef:
     """Opis jednej metryki w kategoriach Home Assistanta."""
 
-    name_pl: str
-    name_en: str
+    name: str
     unit: str | None = None
     device_class: SensorDeviceClass | None = None
     state_class: SensorStateClass | None = None
+    icon: str | None = None
     # Enumy przychodzą z bramki jako LICZBY — na tekst zamienia je ta mapa.
     options: dict[int, str] | None = None
     # Nastawy (`set_*`) i pola serwisowe lądują w sekcji diagnostycznej.
@@ -51,242 +55,488 @@ class MetricDef:
     translation_key: str = field(default="")
 
 
-def _power(pl: str, en: str) -> MetricDef:
-    return MetricDef(pl, en, UnitOfPower.WATT, SensorDeviceClass.POWER, MEASUREMENT)
+def _power(name: str, icon: str | None = None) -> MetricDef:
+    return MetricDef(name, UnitOfPower.WATT, SensorDeviceClass.POWER, MEASUREMENT, icon)
 
 
-def _voltage(pl: str, en: str) -> MetricDef:
+def _voltage(name: str, icon: str | None = None) -> MetricDef:
     return MetricDef(
-        pl, en, UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, MEASUREMENT
+        name, UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, MEASUREMENT, icon
     )
 
 
-def _current(pl: str, en: str) -> MetricDef:
+def _current(name: str, icon: str | None = None) -> MetricDef:
     return MetricDef(
-        pl, en, UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, MEASUREMENT
+        name, UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, MEASUREMENT, icon
     )
 
 
-def _temp(pl: str, en: str) -> MetricDef:
+def _temp(name: str, icon: str | None = None) -> MetricDef:
     return MetricDef(
-        pl, en, UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, MEASUREMENT
+        name, UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, MEASUREMENT, icon
     )
 
 
-def _energy(pl: str, en: str) -> MetricDef:
+def _energy(name: str, icon: str | None = None) -> MetricDef:
+    """Licznik energii. `total_increasing` obsługuje dobowy reset, dzięki czemu
+    Energy Dashboard przyjmuje te encje bez żadnej konfiguracji."""
     return MetricDef(
-        pl, en, UnitOfEnergy.KILO_WATT_HOUR, SensorDeviceClass.ENERGY, TOTAL_INCREASING
+        name, UnitOfEnergy.KILO_WATT_HOUR, SensorDeviceClass.ENERGY, TOTAL_INCREASING, icon
     )
 
 
-def _percent(pl: str, en: str, device_class: SensorDeviceClass | None) -> MetricDef:
-    return MetricDef(pl, en, PERCENTAGE, device_class, MEASUREMENT)
-
-
-def _freq(pl: str, en: str) -> MetricDef:
+def _freq(name: str, icon: str | None = None) -> MetricDef:
     return MetricDef(
-        pl, en, UnitOfFrequency.HERTZ, SensorDeviceClass.FREQUENCY, MEASUREMENT
+        name, UnitOfFrequency.HERTZ, SensorDeviceClass.FREQUENCY, MEASUREMENT, icon
     )
 
 
-# ── Enumy (Deye SG0*LP3) ────────────────────────────────────────────────────
+def _soc(name: str, icon: str | None = None) -> MetricDef:
+    return MetricDef(name, PERCENTAGE, SensorDeviceClass.BATTERY, MEASUREMENT, icon)
+
+
+# ── Enumy ───────────────────────────────────────────────────────────────────
 # `inverter_status` nie jest zwykłą numeracją, tylko maską bitową źródeł
-# zasilania — stąd dziury w kluczach i powtarzające się wartości.
-INVERTER_STATUS = {
-    0x0: "off",
-    0x1: "inverter",
-    0x3: "inverter",
-    0x4: "grid",
-    0x6: "grid",
-    0x5: "inverter_grid",
-    0x7: "inverter_grid",
-    0x8: "generator",
-    0x9: "inverter_generator",
-    0xB: "inverter_generator",
-    0xC: "grid_generator",
-    0xE: "grid_generator",
-    0xD: "inverter_grid_generator",
-    0xF: "inverter_grid_generator",
+# zasilania — stąd dziury w kluczach i powtarzające się wartości. Teksty są
+# stanami encji wprost (bez tłumaczeń), żeby zgadzały się z tym, co pokazują
+# inne integracje czytające ten falownik.
+DEVICE_RELAY = {
+    0x0: "Off",
+    0x1: "Inverter",
+    0x3: "Inverter",
+    0x4: "Grid",
+    0x6: "Grid",
+    0x5: "Inverter-Grid",
+    0x7: "Inverter-Grid",
+    0x8: "Generator",
+    0x9: "Inverter-Gen",
+    0xB: "Inverter-Gen",
+    0xC: "Grid-Generator",
+    0xE: "Grid-Generator",
+    0xD: "Inv-Grid-Gen",
+    0xF: "Inv-Grid-Gen",
 }
 
-RUNNING_STATUS = {
-    0: "standby",
-    1: "selfcheck",
-    2: "normal",
-    3: "alarm",
-    4: "fault",
-}
-
-WORK_MODE = {
-    0: "selling_first",
-    1: "zero_export_to_load",
-    2: "zero_export_to_ct",
+DEVICE_STATE = {
+    0: "Standby",
+    1: "Self-test",
+    2: "Normal",
+    3: "Alarm",
+    4: "Fault",
 }
 
 
 CATALOG: dict[str, MetricDef] = {
-    # ── PV ──────────────────────────────────────────────────────────────────
-    "pv1_power": _power("Moc PV string 1", "PV1 power"),
-    "pv2_power": _power("Moc PV string 2", "PV2 power"),
-    "pv3_power": _power("Moc PV string 3", "PV3 power"),
-    "pv4_power": _power("Moc PV string 4", "PV4 power"),
-    "pv1_voltage": _voltage("Napięcie PV string 1", "PV1 voltage"),
-    "pv2_voltage": _voltage("Napięcie PV string 2", "PV2 voltage"),
-    "pv3_voltage": _voltage("Napięcie PV string 3", "PV3 voltage"),
-    "pv4_voltage": _voltage("Napięcie PV string 4", "PV4 voltage"),
-    "pv1_current": _current("Prąd PV string 1", "PV1 current"),
-    "pv2_current": _current("Prąd PV string 2", "PV2 current"),
-    "pv3_current": _current("Prąd PV string 3", "PV3 current"),
-    "pv4_current": _current("Prąd PV string 4", "PV4 current"),
-    "day_pv_energy": _energy("Dzienna produkcja PV", "Daily PV energy"),
-    "total_pv_generation": _energy("Całkowita produkcja PV", "Total PV generation"),
-    # ── Bateria ─────────────────────────────────────────────────────────────
-    # Znak dodatni = ładowanie, ujemny = rozładowanie. `device_class: battery`
-    # rezerwujemy dla SOC, bo w HA oznacza procent naładowania.
-    "battery_power": _power("Moc baterii", "Battery power"),
-    "battery_voltage": _voltage("Napięcie baterii", "Battery voltage"),
-    "battery_current": _current("Prąd baterii", "Battery current"),
-    "battery_temp": _temp("Temperatura baterii", "Battery temperature"),
-    "battery_soc": _percent("Naładowanie baterii", "Battery SOC", SensorDeviceClass.BATTERY),
-    "battery_soh": _percent("Kondycja baterii", "Battery SOH", None),
+    # ── PV ────────────────────────────────────────────────────────────────────
+    "pv1_power": _power("PV1 Power", "mdi:solar-power-variant"),
+    "pv2_power": _power("PV2 Power", "mdi:solar-power-variant"),
+    "pv3_power": _power("PV3 Power", "mdi:solar-power-variant"),
+    "pv4_power": _power("PV4 Power", "mdi:solar-power-variant"),
+    "pv1_voltage": _voltage("PV1 Voltage", "mdi:solar-power-variant"),
+    "pv1_current": _current("PV1 Current", "mdi:solar-power-variant"),
+    "pv2_voltage": _voltage("PV2 Voltage", "mdi:solar-power-variant"),
+    "pv2_current": _current("PV2 Current", "mdi:solar-power-variant"),
+    "pv3_voltage": _voltage("PV3 Voltage", "mdi:solar-power-variant"),
+    "pv3_current": _current("PV3 Current", "mdi:solar-power-variant"),
+    "pv4_voltage": _voltage("PV4 Voltage", "mdi:solar-power-variant"),
+    "pv4_current": _current("PV4 Current", "mdi:solar-power-variant"),
+    # ── Bateria ───────────────────────────────────────────────────────────────
+    "battery_temp": _temp("Battery Temperature"),
+    "battery_voltage": _voltage("Battery Voltage"),
+    "battery_soc": _soc("Battery"),
+    "battery2_soc": _soc("Battery 2", "mdi:battery"),
+    "battery_power": _power("Battery Power"),
+    "battery_current": _current("Battery Current", "mdi:current-dc"),
     "battery_corrected_capacity": MetricDef(
-        "Pojemność baterii (skorygowana)", "Battery corrected capacity", "Ah", None, MEASUREMENT
+        "Battery Corrected Capacity",
+        "Ah",
+        None,
+        MEASUREMENT,
+        "mdi:battery",
     ),
-    "battery2_soc": _percent("Naładowanie baterii 2", "Battery 2 SOC", SensorDeviceClass.BATTERY),
-    "battery2_voltage": _voltage("Napięcie baterii 2", "Battery 2 voltage"),
-    "battery2_current": _current("Prąd baterii 2", "Battery 2 current"),
-    "battery2_power": _power("Moc baterii 2", "Battery 2 power"),
-    "battery2_temperature": _temp("Temperatura baterii 2", "Battery 2 temperature"),
-    "day_battery_charge": _energy("Dzienne ładowanie baterii", "Daily battery charge"),
-    "day_battery_discharge": _energy("Dzienne rozładowanie baterii", "Daily battery discharge"),
-    "total_battery_charge": _energy("Całkowite ładowanie baterii", "Total battery charge"),
-    "total_battery_discharge": _energy("Całkowite rozładowanie baterii", "Total battery discharge"),
-    # ── Sieć ────────────────────────────────────────────────────────────────
-    # Znak dodatni = pobór z sieci, ujemny = oddawanie.
-    "grid_power": _power("Moc sieci", "Grid power"),
-    "grid_l1_power": _power("Moc sieci L1", "Grid L1 power"),
-    "grid_l2_power": _power("Moc sieci L2", "Grid L2 power"),
-    "grid_l3_power": _power("Moc sieci L3", "Grid L3 power"),
-    "grid_l1_voltage": _voltage("Napięcie sieci L1", "Grid L1 voltage"),
-    "grid_l2_voltage": _voltage("Napięcie sieci L2", "Grid L2 voltage"),
-    "grid_l3_voltage": _voltage("Napięcie sieci L3", "Grid L3 voltage"),
-    "grid_frequency": _freq("Częstotliwość sieci", "Grid frequency"),
+    "battery2_voltage": _voltage("Battery 2 Voltage"),
+    "battery2_current": _current("Battery 2 Current", "mdi:current-dc"),
+    "battery2_power": _power("Battery 2 Power"),
+    "battery2_temperature": _temp("Battery 2 Temperature"),
+    "battery_soh": MetricDef(
+        "Battery SOH",
+        PERCENTAGE,
+        None,
+        MEASUREMENT,
+        "mdi:battery-heart",
+    ),
+    # ── Sieć i przekładniki ───────────────────────────────────────────────────
+    "grid_l1_voltage": _voltage("Grid L1 Voltage", "mdi:transmission-tower"),
+    "grid_l2_voltage": _voltage("Grid L2 Voltage", "mdi:transmission-tower"),
+    "grid_l3_voltage": _voltage("Grid L3 Voltage", "mdi:transmission-tower"),
+    "grid_frequency": _freq("Grid Frequency"),
     "grid_power_factor": MetricDef(
-        "Współczynnik mocy", "Power factor", None, SensorDeviceClass.POWER_FACTOR, MEASUREMENT
+        "Grid Power Factor",
+        PERCENTAGE,
+        SensorDeviceClass.POWER_FACTOR,
+        MEASUREMENT,
+        "mdi:transmission-tower",
     ),
-    "grid_ct_power_l1": _power("Moc CT L1", "CT L1 power"),
-    "grid_ct_power_l2": _power("Moc CT L2", "CT L2 power"),
-    "grid_ct_power_l3": _power("Moc CT L3", "CT L3 power"),
-    "day_grid_import": _energy("Dzienny pobór z sieci", "Daily grid import"),
-    "day_grid_export": _energy("Dzienne oddanie do sieci", "Daily grid export"),
-    "total_energy_bought": _energy("Całkowity pobór z sieci", "Total energy bought"),
-    "total_energy_sold": _energy("Całkowite oddanie do sieci", "Total energy sold"),
-    # ── Przekładniki ────────────────────────────────────────────────────────
-    "internal_ct_power": _power("Moc CT wewnętrznego", "Internal CT power"),
-    "internal_ct_l1_current": _current("Prąd CT wewnętrznego L1", "Internal CT L1 current"),
-    "internal_ct_l2_current": _current("Prąd CT wewnętrznego L2", "Internal CT L2 current"),
-    "internal_ct_l3_current": _current("Prąd CT wewnętrznego L3", "Internal CT L3 current"),
-    "external_ct_power": _power("Moc CT zewnętrznego", "External CT power"),
-    "external_ct_l1_power": _power("Moc CT zewnętrznego L1", "External CT L1 power"),
-    "external_ct_l2_power": _power("Moc CT zewnętrznego L2", "External CT L2 power"),
-    "external_ct_l3_power": _power("Moc CT zewnętrznego L3", "External CT L3 power"),
-    "external_ct_l1_current": _current("Prąd CT zewnętrznego L1", "External CT L1 current"),
-    "external_ct_l2_current": _current("Prąd CT zewnętrznego L2", "External CT L2 current"),
-    "external_ct_l3_current": _current("Prąd CT zewnętrznego L3", "External CT L3 current"),
-    # ── Falownik / wyjście ──────────────────────────────────────────────────
-    "inverter_power": _power("Moc falownika", "Inverter power"),
-    "inverter_voltage_l1": _voltage("Napięcie falownika L1", "Inverter L1 voltage"),
-    "inverter_voltage_l2": _voltage("Napięcie falownika L2", "Inverter L2 voltage"),
-    "inverter_voltage_l3": _voltage("Napięcie falownika L3", "Inverter L3 voltage"),
-    "inverter_current_l1": _current("Prąd falownika L1", "Inverter L1 current"),
-    "inverter_current_l2": _current("Prąd falownika L2", "Inverter L2 current"),
-    "inverter_current_l3": _current("Prąd falownika L3", "Inverter L3 current"),
-    "output_l1_power": _power("Moc wyjściowa L1", "Output L1 power"),
-    "output_l2_power": _power("Moc wyjściowa L2", "Output L2 power"),
-    "output_l3_power": _power("Moc wyjściowa L3", "Output L3 power"),
-    "output_frequency": _freq("Częstotliwość wyjściowa", "Output frequency"),
+    "grid_l1_power": _power("Grid L1 Power", "mdi:transmission-tower"),
+    "grid_l2_power": _power("Grid L2 Power", "mdi:transmission-tower"),
+    "grid_l3_power": _power("Grid L3 Power", "mdi:transmission-tower"),
+    "grid_power": _power("Grid Power", "mdi:transmission-tower"),
+    "grid_ct_power_l1": _power("Internal CT1 Power", "mdi:transmission-tower"),
+    "grid_ct_power_l2": _power("Internal CT2 Power", "mdi:transmission-tower"),
+    "grid_ct_power_l3": _power("Internal CT3 Power", "mdi:transmission-tower"),
+    "internal_ct_power": _power("Internal Power", "mdi:transmission-tower"),
+    "internal_ct_l1_current": _current(
+        "Internal CT1 Current",
+        "mdi:transmission-tower",
+    ),
+    "internal_ct_l2_current": _current(
+        "Internal CT2 Current",
+        "mdi:transmission-tower",
+    ),
+    "internal_ct_l3_current": _current(
+        "Internal CT3 Current",
+        "mdi:transmission-tower",
+    ),
+    "external_ct_l1_current": _current(
+        "External CT1 Current",
+        "mdi:transmission-tower",
+    ),
+    "external_ct_l2_current": _current(
+        "External CT2 Current",
+        "mdi:transmission-tower",
+    ),
+    "external_ct_l3_current": _current(
+        "External CT3 Current",
+        "mdi:transmission-tower",
+    ),
+    "external_ct_l1_power": _power("External CT1 Power", "mdi:transmission-tower"),
+    "external_ct_l2_power": _power("External CT2 Power", "mdi:transmission-tower"),
+    "external_ct_l3_power": _power("External CT3 Power", "mdi:transmission-tower"),
+    "external_ct_power": _power("External Power", "mdi:transmission-tower"),
+    # ── Wyjście falownika ─────────────────────────────────────────────────────
+    "inverter_voltage_l1": _voltage("Output L1 Voltage"),
+    "inverter_voltage_l2": _voltage("Output L2 Voltage"),
+    "inverter_voltage_l3": _voltage("Output L3 Voltage"),
+    "inverter_current_l1": _current("Output L1 Current"),
+    "inverter_current_l2": _current("Output L2 Current"),
+    "inverter_current_l3": _current("Output L3 Current"),
+    "output_l1_power": _power("Output L1 Power"),
+    "output_l2_power": _power("Output L2 Power"),
+    "output_l3_power": _power("Output L3 Power"),
+    "inverter_power": _power("Power"),
+    "output_frequency": _freq("Output Frequency"),
     "inverter_status": MetricDef(
-        "Stan falownika", "Inverter status",
-        None, SensorDeviceClass.ENUM, None, options=INVERTER_STATUS,
+        "Device Relay",
+        None,
+        SensorDeviceClass.ENUM,
+        None,
+        "mdi:directions-fork",
+        options=DEVICE_RELAY,
     ),
+    # ── Obciążenie ────────────────────────────────────────────────────────────
+    "load_ups_l1_power": _power("Load UPS L1 Power", "mdi:home-lightning-bolt"),
+    "load_ups_l2_power": _power("Load UPS L2 Power", "mdi:home-lightning-bolt"),
+    "load_ups_l3_power": _power("Load UPS L3 Power", "mdi:home-lightning-bolt"),
+    "load_ups_power": _power("Load UPS Power", "mdi:home-lightning-bolt"),
+    "load_l1_voltage": _voltage("Load L1 Voltage"),
+    "load_l2_voltage": _voltage("Load L2 Voltage"),
+    "load_l3_voltage": _voltage("Load L3 Voltage"),
+    "load_power_l1": _power("Load L1 Power"),
+    "load_power_l2": _power("Load L2 Power"),
+    "load_power_l3": _power("Load L3 Power"),
+    "load_power": _power("Load Power"),
+    "load_frequency": _freq("Load Frequency"),
+    # ── Temperatury ───────────────────────────────────────────────────────────
+    "dc_transformer_temp": _temp("DC Temperature", "mdi:thermometer"),
+    "radiator_temp": _temp("Temperature", "mdi:thermometer"),
+    # ── Liczniki energii ──────────────────────────────────────────────────────
+    "day_battery_charge": _energy("Today Battery Charge", "mdi:battery-plus"),
+    "day_battery_discharge": _energy("Today Battery Discharge", "mdi:battery-minus"),
+    "total_battery_charge": _energy("Total Battery Charge", "mdi:battery-plus"),
+    "total_battery_discharge": _energy("Total Battery Discharge", "mdi:battery-minus"),
+    "day_grid_import": _energy("Today Energy Import", "mdi:transmission-tower-export"),
+    "day_grid_export": _energy("Today Energy Export", "mdi:transmission-tower-import"),
+    "total_energy_bought": _energy(
+        "Total Energy Import",
+        "mdi:transmission-tower-export",
+    ),
+    "total_energy_sold": _energy(
+        "Total Energy Export",
+        "mdi:transmission-tower-import",
+    ),
+    "day_load_energy": _energy("Today Load Consumption"),
+    "total_consumption": _energy("Total Load Consumption"),
+    "day_pv_energy": _energy("Today Production", "mdi:solar-power"),
+    "total_pv_generation": _energy("Total Production", "mdi:solar-power"),
+    "daily_generator_production": _energy("Generator Energy - today"),
+    "total_generator_production": _energy("Generator Energy"),
+    # ── Stan pracy ────────────────────────────────────────────────────────────
     "running_status": MetricDef(
-        "Stan pracy", "Running status",
-        None, SensorDeviceClass.ENUM, None, options=RUNNING_STATUS,
+        "Device State",
+        None,
+        SensorDeviceClass.ENUM,
+        None,
+        "mdi:state-machine",
+        options=DEVICE_STATE,
     ),
-    # ── Obciążenie ──────────────────────────────────────────────────────────
-    "load_power": _power("Moc obciążenia", "Load power"),
-    "load_power_l1": _power("Moc obciążenia L1", "Load L1 power"),
-    "load_power_l2": _power("Moc obciążenia L2", "Load L2 power"),
-    "load_power_l3": _power("Moc obciążenia L3", "Load L3 power"),
-    "load_l1_voltage": _voltage("Napięcie obciążenia L1", "Load L1 voltage"),
-    "load_l2_voltage": _voltage("Napięcie obciążenia L2", "Load L2 voltage"),
-    "load_l3_voltage": _voltage("Napięcie obciążenia L3", "Load L3 voltage"),
-    "load_frequency": _freq("Częstotliwość obciążenia", "Load frequency"),
-    "load_ups_power": _power("Moc UPS", "UPS power"),
-    "load_ups_l1_power": _power("Moc UPS L1", "UPS L1 power"),
-    "load_ups_l2_power": _power("Moc UPS L2", "UPS L2 power"),
-    "load_ups_l3_power": _power("Moc UPS L3", "UPS L3 power"),
-    "day_load_energy": _energy("Dzienne zużycie", "Daily load energy"),
-    "total_consumption": _energy("Całkowite zużycie", "Total consumption"),
-    # ── Generator ───────────────────────────────────────────────────────────
-    "daily_generator_production": _energy("Dzienna produkcja generatora", "Daily generator production"),
-    "total_generator_production": _energy("Całkowita produkcja generatora", "Total generator production"),
-    # ── Temperatury ─────────────────────────────────────────────────────────
-    "radiator_temp": _temp("Temperatura radiatora", "Radiator temperature"),
-    "dc_transformer_temp": _temp("Temperatura transformatora DC", "DC transformer temperature"),
-    # ── Nastawy (`set_*`) — w M1 tylko do odczytu, diagnostycznie ───────────
+    # ── Nastawy falownika — w M1 tylko do odczytu ─────────────────────────────
     "set_work_mode": MetricDef(
-        "Tryb pracy", "Work mode",
-        None, SensorDeviceClass.ENUM, None, options=WORK_MODE, diagnostic=True,
-    ),
-    "set_max_charge_current": MetricDef(
-        "Maks. prąd ładowania", "Max charge current",
-        UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, None, diagnostic=True,
-    ),
-    "set_max_discharge_current": MetricDef(
-        "Maks. prąd rozładowania", "Max discharge current",
-        UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, None, diagnostic=True,
+        "Work Mode",
+        None,
+        None,
+        None,
+        "mdi:home-lightning-bolt",
+        diagnostic=True,
     ),
     "set_export_surplus_power": MetricDef(
-        "Limit oddawania nadwyżki", "Export surplus power limit",
-        UnitOfPower.WATT, SensorDeviceClass.POWER, None, diagnostic=True,
+        "Export Surplus Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:transmission-tower-import",
+        diagnostic=True,
     ),
-    "set_grid_peak_shaving_power": MetricDef(
-        "Limit mocy z sieci (peak shaving)", "Grid peak shaving power",
-        UnitOfPower.WATT, SensorDeviceClass.POWER, None, diagnostic=True,
+    "set_max_charge_current": MetricDef(
+        "Battery Max Charging Current",
+        UnitOfElectricCurrent.AMPERE,
+        SensorDeviceClass.CURRENT,
+        None,
+        "mdi:current-dc",
+        diagnostic=True,
+    ),
+    "set_max_discharge_current": MetricDef(
+        "Battery Max Discharging Current",
+        UnitOfElectricCurrent.AMPERE,
+        SensorDeviceClass.CURRENT,
+        None,
+        "mdi:current-dc",
+        diagnostic=True,
     ),
     "set_pv_power": MetricDef(
-        "Zadeklarowana moc PV", "Declared PV power",
-        UnitOfPower.WATT, SensorDeviceClass.POWER, None, diagnostic=True,
+        "PV Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:solar-power-variant",
+        diagnostic=True,
+    ),
+    "set_gen_config": MetricDef(
+        "Generator Config Register",
+        None,
+        None,
+        None,
+        "mdi:cog",
+        diagnostic=True,
+    ),
+    "set_grid_peak_shaving_power": MetricDef(
+        "Grid Peak shaving",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:transmission-tower",
+        diagnostic=True,
+    ),
+    "set_tou_config": MetricDef(
+        "Time of Use Register",
+        None,
+        None,
+        None,
+        "mdi:cog",
+        diagnostic=True,
+    ),
+    "set_program_time_1": MetricDef(
+        "Program 1 Time",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_time_2": MetricDef(
+        "Program 2 Time",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_time_3": MetricDef(
+        "Program 3 Time",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_time_4": MetricDef(
+        "Program 4 Time",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_time_5": MetricDef(
+        "Program 5 Time",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_time_6": MetricDef(
+        "Program 6 Time",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_power_1": MetricDef(
+        "Program 1 Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_power_2": MetricDef(
+        "Program 2 Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_power_3": MetricDef(
+        "Program 3 Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_power_4": MetricDef(
+        "Program 4 Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_power_5": MetricDef(
+        "Program 5 Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_power_6": MetricDef(
+        "Program 6 Power",
+        UnitOfPower.WATT,
+        SensorDeviceClass.POWER,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_soc_1": MetricDef(
+        "Program 1 SOC",
+        PERCENTAGE,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_soc_2": MetricDef(
+        "Program 2 SOC",
+        PERCENTAGE,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_soc_3": MetricDef(
+        "Program 3 SOC",
+        PERCENTAGE,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_soc_4": MetricDef(
+        "Program 4 SOC",
+        PERCENTAGE,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_soc_5": MetricDef(
+        "Program 5 SOC",
+        PERCENTAGE,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_soc_6": MetricDef(
+        "Program 6 SOC",
+        PERCENTAGE,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_charging_1": MetricDef(
+        "Program 1 Charging",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_charging_2": MetricDef(
+        "Program 2 Charging",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_charging_3": MetricDef(
+        "Program 3 Charging",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_charging_4": MetricDef(
+        "Program 4 Charging",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_charging_5": MetricDef(
+        "Program 5 Charging",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
+    ),
+    "set_program_charging_6": MetricDef(
+        "Program 6 Charging",
+        None,
+        None,
+        None,
+        "mdi:sun-clock",
+        diagnostic=True,
     ),
 }
-
-# Sloty harmonogramu 1–6 — sześć razy to samo, więc generujemy zamiast
-# przepisywać. `set_program_time_N` to surowe HHMM (1500 = 15:00), nie minuty.
-for _slot in range(1, 7):
-    CATALOG[f"set_program_time_{_slot}"] = MetricDef(
-        f"Harmonogram {_slot}: godzina", f"Program {_slot} time", diagnostic=True
-    )
-    CATALOG[f"set_program_power_{_slot}"] = MetricDef(
-        f"Harmonogram {_slot}: moc", f"Program {_slot} power",
-        UnitOfPower.WATT, SensorDeviceClass.POWER, None, diagnostic=True,
-    )
-    CATALOG[f"set_program_soc_{_slot}"] = MetricDef(
-        f"Harmonogram {_slot}: SOC", f"Program {_slot} SOC",
-        PERCENTAGE, None, None, diagnostic=True,
-    )
-    CATALOG[f"set_program_charging_{_slot}"] = MetricDef(
-        f"Harmonogram {_slot}: ładowanie z sieci", f"Program {_slot} grid charging",
-        diagnostic=True,
-    )
-
-# Nastawy bez rozpoznanej semantyki — surowe rejestry konfiguracyjne. Pokazujemy
-# je jako liczby, bo ukrycie ich znaczyłoby, że bramka czyta coś, czego nie widać.
-for _raw in ("set_gen_config", "set_tou_config"):
-    CATALOG[_raw] = MetricDef(
-        f"Rejestr {_raw.removeprefix('set_')}", f"Register {_raw.removeprefix('set_')}",
-        diagnostic=True,
-    )
 
 CATALOG = {key: replace(spec, translation_key=key) for key, spec in CATALOG.items()}
 
@@ -295,7 +545,9 @@ CATALOG = {key: replace(spec, translation_key=key) for key, spec in CATALOG.item
 # Kolejność ma znaczenie: prefiksy energii przed sufiksami mocy, bo
 # `total_pv_generation` to kWh, a nie W.
 _ENERGY_PREFIXES = ("day_", "daily_", "total_")
-_SUFFIX_RULES: tuple[tuple[str, str | None, SensorDeviceClass | None, SensorStateClass | None], ...] = (
+_SUFFIX_RULES: tuple[
+    tuple[str, str | None, SensorDeviceClass | None, SensorStateClass | None], ...
+] = (
     ("_power_factor", None, SensorDeviceClass.POWER_FACTOR, MEASUREMENT),
     ("_frequency", UnitOfFrequency.HERTZ, SensorDeviceClass.FREQUENCY, MEASUREMENT),
     ("_voltage", UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, MEASUREMENT),
@@ -306,7 +558,12 @@ _SUFFIX_RULES: tuple[tuple[str, str | None, SensorDeviceClass | None, SensorStat
     ("_soh", PERCENTAGE, None, MEASUREMENT),
     ("_energy", UnitOfEnergy.KILO_WATT_HOUR, SensorDeviceClass.ENERGY, TOTAL_INCREASING),
     ("_power", UnitOfPower.WATT, SensorDeviceClass.POWER, MEASUREMENT),
-    ("_apparent_power", UnitOfApparentPower.VOLT_AMPERE, SensorDeviceClass.APPARENT_POWER, MEASUREMENT),
+    (
+        "_apparent_power",
+        UnitOfApparentPower.VOLT_AMPERE,
+        SensorDeviceClass.APPARENT_POWER,
+        MEASUREMENT,
+    ),
 )
 
 
@@ -316,20 +573,18 @@ def humanize(key: str) -> str:
 
 
 def _heuristic(key: str) -> MetricDef:
-    """Opis wyprowadzony z samej nazwy klucza.
-
-    Dzięki temu metryka, która pojawi się w odczytach bramki, daje w HA
-    działającą encję z poprawną jednostką jeszcze zanim ktokolwiek wyda nową
-    wersję integracji.
-    """
+    """Opis wyprowadzony z samej nazwy klucza."""
     name = humanize(key)
     base = key.removeprefix("set_")
     diagnostic = key.startswith("set_")
 
     if base.startswith(_ENERGY_PREFIXES):
         return MetricDef(
-            name, name, UnitOfEnergy.KILO_WATT_HOUR, SensorDeviceClass.ENERGY,
-            TOTAL_INCREASING, diagnostic=diagnostic,
+            name,
+            UnitOfEnergy.KILO_WATT_HOUR,
+            SensorDeviceClass.ENERGY,
+            TOTAL_INCREASING,
+            diagnostic=diagnostic,
         )
 
     for suffix, unit, device_class, state_class in _SUFFIX_RULES:
@@ -337,11 +592,14 @@ def _heuristic(key: str) -> MetricDef:
             # Nastawa to wartość zadana, nie przebieg — `state_class` psułby
             # statystyki długoterminowe (średnia z limitu nie znaczy nic).
             return MetricDef(
-                name, name, unit, device_class,
-                None if diagnostic else state_class, diagnostic=diagnostic,
+                name,
+                unit,
+                device_class,
+                None if diagnostic else state_class,
+                diagnostic=diagnostic,
             )
 
-    return MetricDef(name, name, diagnostic=diagnostic)
+    return MetricDef(name, diagnostic=diagnostic)
 
 
 def describe(key: str) -> MetricDef:
@@ -353,31 +611,152 @@ def is_known(key: str) -> bool:
     return key in CATALOG
 
 
-# ── Etykiety stanów enumów (pl, en) ─────────────────────────────────────────
-# Osobno od samego mapowania kodów, bo tłumaczenia idą do plików `translations/`
-# generowanych przez `scripts/gen_translations.py`. Katalog zostaje jedynym
-# źródłem prawdy — pliki JSON są artefaktem.
-OPTION_LABELS: dict[str, dict[str, tuple[str, str]]] = {
+# ── Polskie nazwy encji ─────────────────────────────────────────────────────
+# Angielskie nazwy w `CATALOG` trzymają się konwencji przyjętej dla tych
+# falowników i są wspólne dla wszystkich instalacji; tu leży ich tłumaczenie.
+# Klucz bez wpisu dostanie nazwę angielską — to poprawny stan, nie błąd.
+NAMES_PL: dict[str, str] = {
+    "pv1_power": "Moc PV string 1",
+    "pv2_power": "Moc PV string 2",
+    "pv3_power": "Moc PV string 3",
+    "pv4_power": "Moc PV string 4",
+    "pv1_voltage": "Napięcie PV string 1",
+    "pv1_current": "Prąd PV string 1",
+    "pv2_voltage": "Napięcie PV string 2",
+    "pv2_current": "Prąd PV string 2",
+    "pv3_voltage": "Napięcie PV string 3",
+    "pv3_current": "Prąd PV string 3",
+    "pv4_voltage": "Napięcie PV string 4",
+    "pv4_current": "Prąd PV string 4",
+    "battery_temp": "Temperatura baterii",
+    "battery_voltage": "Napięcie baterii",
+    "battery_soc": "Naładowanie baterii",
+    "battery2_soc": "Naładowanie baterii 2",
+    "battery_power": "Moc baterii",
+    "battery_current": "Prąd baterii",
+    "battery_corrected_capacity": "Pojemność baterii (skorygowana)",
+    "battery2_voltage": "Napięcie baterii 2",
+    "battery2_current": "Prąd baterii 2",
+    "battery2_power": "Moc baterii 2",
+    "battery2_temperature": "Temperatura baterii 2",
+    "battery_soh": "Kondycja baterii",
+    "grid_l1_voltage": "Napięcie sieci L1",
+    "grid_l2_voltage": "Napięcie sieci L2",
+    "grid_l3_voltage": "Napięcie sieci L3",
+    "grid_frequency": "Częstotliwość sieci",
+    "grid_power_factor": "Współczynnik mocy",
+    "grid_l1_power": "Moc sieci L1",
+    "grid_l2_power": "Moc sieci L2",
+    "grid_l3_power": "Moc sieci L3",
+    "grid_power": "Moc sieci",
+    "grid_ct_power_l1": "Moc CT L1",
+    "grid_ct_power_l2": "Moc CT L2",
+    "grid_ct_power_l3": "Moc CT L3",
+    "internal_ct_power": "Moc CT wewnętrznego",
+    "internal_ct_l1_current": "Prąd CT wewnętrznego L1",
+    "internal_ct_l2_current": "Prąd CT wewnętrznego L2",
+    "internal_ct_l3_current": "Prąd CT wewnętrznego L3",
+    "external_ct_l1_current": "Prąd CT zewnętrznego L1",
+    "external_ct_l2_current": "Prąd CT zewnętrznego L2",
+    "external_ct_l3_current": "Prąd CT zewnętrznego L3",
+    "external_ct_l1_power": "Moc CT zewnętrznego L1",
+    "external_ct_l2_power": "Moc CT zewnętrznego L2",
+    "external_ct_l3_power": "Moc CT zewnętrznego L3",
+    "external_ct_power": "Moc CT zewnętrznego",
+    "inverter_voltage_l1": "Napięcie falownika L1",
+    "inverter_voltage_l2": "Napięcie falownika L2",
+    "inverter_voltage_l3": "Napięcie falownika L3",
+    "inverter_current_l1": "Prąd falownika L1",
+    "inverter_current_l2": "Prąd falownika L2",
+    "inverter_current_l3": "Prąd falownika L3",
+    "output_l1_power": "Moc wyjściowa L1",
+    "output_l2_power": "Moc wyjściowa L2",
+    "output_l3_power": "Moc wyjściowa L3",
+    "inverter_power": "Moc falownika",
+    "output_frequency": "Częstotliwość wyjściowa",
+    "inverter_status": "Stan falownika",
+    "load_ups_l1_power": "Moc UPS L1",
+    "load_ups_l2_power": "Moc UPS L2",
+    "load_ups_l3_power": "Moc UPS L3",
+    "load_ups_power": "Moc UPS",
+    "load_l1_voltage": "Napięcie obciążenia L1",
+    "load_l2_voltage": "Napięcie obciążenia L2",
+    "load_l3_voltage": "Napięcie obciążenia L3",
+    "load_power_l1": "Moc obciążenia L1",
+    "load_power_l2": "Moc obciążenia L2",
+    "load_power_l3": "Moc obciążenia L3",
+    "load_power": "Moc obciążenia",
+    "load_frequency": "Częstotliwość obciążenia",
+    "dc_transformer_temp": "Temperatura transformatora DC",
+    "radiator_temp": "Temperatura radiatora",
+    "day_battery_charge": "Dzienne ładowanie baterii",
+    "day_battery_discharge": "Dzienne rozładowanie baterii",
+    "total_battery_charge": "Całkowite ładowanie baterii",
+    "total_battery_discharge": "Całkowite rozładowanie baterii",
+    "day_grid_import": "Dzienny pobór z sieci",
+    "day_grid_export": "Dzienne oddanie do sieci",
+    "total_energy_bought": "Całkowity pobór z sieci",
+    "total_energy_sold": "Całkowite oddanie do sieci",
+    "day_load_energy": "Dzienne zużycie",
+    "total_consumption": "Całkowite zużycie",
+    "day_pv_energy": "Dzienna produkcja PV",
+    "total_pv_generation": "Całkowita produkcja PV",
+    "daily_generator_production": "Dzienna produkcja generatora",
+    "total_generator_production": "Całkowita produkcja generatora",
+    "running_status": "Stan pracy",
+    "set_work_mode": "Tryb pracy",
+    "set_export_surplus_power": "Limit oddawania nadwyżki",
+    "set_max_charge_current": "Maks. prąd ładowania",
+    "set_max_discharge_current": "Maks. prąd rozładowania",
+    "set_pv_power": "Zadeklarowana moc PV",
+    "set_gen_config": "Rejestr gen_config",
+    "set_grid_peak_shaving_power": "Limit mocy z sieci (peak shaving)",
+    "set_tou_config": "Rejestr tou_config",
+    "set_program_time_1": "Harmonogram 1: godzina",
+    "set_program_time_2": "Harmonogram 2: godzina",
+    "set_program_time_3": "Harmonogram 3: godzina",
+    "set_program_time_4": "Harmonogram 4: godzina",
+    "set_program_time_5": "Harmonogram 5: godzina",
+    "set_program_time_6": "Harmonogram 6: godzina",
+    "set_program_power_1": "Harmonogram 1: moc",
+    "set_program_power_2": "Harmonogram 2: moc",
+    "set_program_power_3": "Harmonogram 3: moc",
+    "set_program_power_4": "Harmonogram 4: moc",
+    "set_program_power_5": "Harmonogram 5: moc",
+    "set_program_power_6": "Harmonogram 6: moc",
+    "set_program_soc_1": "Harmonogram 1: SOC",
+    "set_program_soc_2": "Harmonogram 2: SOC",
+    "set_program_soc_3": "Harmonogram 3: SOC",
+    "set_program_soc_4": "Harmonogram 4: SOC",
+    "set_program_soc_5": "Harmonogram 5: SOC",
+    "set_program_soc_6": "Harmonogram 6: SOC",
+    "set_program_charging_1": "Harmonogram 1: ładowanie z sieci",
+    "set_program_charging_2": "Harmonogram 2: ładowanie z sieci",
+    "set_program_charging_3": "Harmonogram 3: ładowanie z sieci",
+    "set_program_charging_4": "Harmonogram 4: ładowanie z sieci",
+    "set_program_charging_5": "Harmonogram 5: ładowanie z sieci",
+    "set_program_charging_6": "Harmonogram 6: ładowanie z sieci",
+}
+
+
+# Stany enumów po polsku. Kluczem jest WARTOŚĆ stanu encji, bo tym posługuje
+# się mechanizm tłumaczeń Home Assistanta.
+STATE_LABELS_PL: dict[str, dict[str, str]] = {
     "inverter_status": {
-        "off": ("Wyłączony", "Off"),
-        "inverter": ("Falownik", "Inverter"),
-        "grid": ("Sieć", "Grid"),
-        "inverter_grid": ("Falownik + sieć", "Inverter-Grid"),
-        "generator": ("Generator", "Generator"),
-        "inverter_generator": ("Falownik + generator", "Inverter-Generator"),
-        "grid_generator": ("Sieć + generator", "Grid-Generator"),
-        "inverter_grid_generator": ("Falownik + sieć + generator", "Inverter-Grid-Generator"),
+        "Off": "Wyłączony",
+        "Inverter": "Falownik",
+        "Grid": "Sieć",
+        "Inverter-Grid": "Falownik + sieć",
+        "Generator": "Generator",
+        "Inverter-Gen": "Falownik + generator",
+        "Grid-Generator": "Sieć + generator",
+        "Inv-Grid-Gen": "Falownik + sieć + generator",
     },
     "running_status": {
-        "standby": ("Czuwanie", "Standby"),
-        "selfcheck": ("Autotest", "Self-check"),
-        "normal": ("Praca normalna", "Normal"),
-        "alarm": ("Alarm", "Alarm"),
-        "fault": ("Awaria", "Fault"),
-    },
-    "set_work_mode": {
-        "selling_first": ("Sprzedaż nadwyżek", "Selling first"),
-        "zero_export_to_load": ("Zero eksportu (odbiory)", "Zero export to load"),
-        "zero_export_to_ct": ("Zero eksportu (CT)", "Zero export to CT"),
+        "Standby": "Czuwanie",
+        "Self-test": "Autotest",
+        "Normal": "Praca normalna",
+        "Alarm": "Alarm",
+        "Fault": "Awaria",
     },
 }
