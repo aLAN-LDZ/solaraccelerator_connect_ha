@@ -1,6 +1,6 @@
 {
   "domain": "solaraccelerator_connect",
-  "name": "SolarAccelerator Connect",
+  "name": "Solar Accelerator Connect",
   "codeowners": [
     "@aLAN-LDZ"
   ],
@@ -10,7 +10,7 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/aLAN-LDZ/solaraccelerator_connect_ha/issues",
   "requirements": [],
-  "version": "0.1.1",
+  "version": "0.1.2",
   "zeroconf": [
     {
       "type": "_http._tcp.local.",

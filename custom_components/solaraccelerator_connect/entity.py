@@ -29,11 +29,11 @@ class SaConnectEntity(CoordinatorEntity[SaConnectCoordinator]):
     def device_info(self) -> DeviceInfo:
         status = self.coordinator.data.status if self.coordinator.data else {}
         mac = str(status.get("mac") or "")
-        name = str(status.get("inverter_name") or "SolarAccelerator Connect")
+        name = str(status.get("inverter_name") or "Solar Accelerator Connect")
         info = DeviceInfo(
             identifiers={(DOMAIN, str(self.coordinator.entry.unique_id))},
             name=name,
-            manufacturer=str(status.get("inverter_manufacturer") or "SolarAccelerator"),
+            manufacturer=str(status.get("inverter_manufacturer") or "Solar Accelerator"),
             model=str(status.get("inverter_model") or "SA Connect"),
             sw_version=str(status.get("firmware_version") or ""),
             configuration_url=self.coordinator.api.base_url,
@@ -44,10 +44,11 @@ class SaConnectEntity(CoordinatorEntity[SaConnectCoordinator]):
 
 
 def build_entity_id(coordinator: SaConnectCoordinator, fmt: str, key: str) -> str:
-    """`sensor.deye_pv1_power` — konwencja nazw znana z integracji Solarman.
+    """Buduje `entity_id` w postaci `sensor.<prefiks>_<klucz>`.
 
-    Dzięki niej przesiadka z Solarmana nie wymaga przepisywania dashboardów ani
-    automatyzacji: przy tym samym przedrostku encje wracają pod swoimi nazwami.
+    Prefiks pochodzi z kreatora. Przy tym samym prefiksie encje wracają pod
+    swoimi identyfikatorami, więc gotowe dashboardy i automatyzacje działają
+    dalej bez przepisywania.
     """
     prefix = coordinator.entry.data.get("prefix") or ""
     object_id = f"{prefix}_{key}" if prefix else key

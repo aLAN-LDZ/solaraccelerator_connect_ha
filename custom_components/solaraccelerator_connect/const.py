@@ -1,4 +1,4 @@
-"""Stałe integracji SolarAccelerator Connect.
+"""Stałe integracji Solar Accelerator Connect.
 
 Integracja czyta bramkę SA Connect wprost z sieci lokalnej — bez chmury, bez
 klucza API. Bramka odpytuje falownik po Modbus RTU i trzyma świeży snapshot
@@ -8,7 +8,7 @@ w RAM; my odpytujemy ją w TYM SAMYM tempie, które ustawiono w jej portalu.
 DOMAIN = "solaraccelerator_connect"
 
 # === Klucze w entry.data ===
-CONF_PREFIX = "prefix"          # przedrostek entity_id, np. "deye"
+CONF_PREFIX = "prefix"          # prefiks entity_id, np. "deye"
 
 # Użytkownik portalu jest stały — hasło ustawia kreator bramki.
 GATEWAY_USERNAME = "admin"
@@ -36,5 +36,5 @@ MISSING_TOLERANCE = 3
 # Prefiks nastaw falownika (nie pomiarów) w odpowiedzi `/api/inverter/readings`.
 SETTING_PREFIX = "set_"
 
-# Domyślny przedrostek encji, gdy bramka nie zna producenta falownika.
+# Domyślny prefiks encji, gdy bramka nie zna producenta falownika.
 FALLBACK_PREFIX = "inverter"

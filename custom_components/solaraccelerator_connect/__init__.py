@@ -1,4 +1,4 @@
-"""Integracja SolarAccelerator Connect — lokalny odczyt bramki SA Connect."""
+"""Integracja Solar Accelerator Connect — lokalny odczyt bramki SA Connect."""
 
 from __future__ import annotations
 

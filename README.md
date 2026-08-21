@@ -1,4 +1,4 @@
-# SolarAccelerator Connect — integracja Home Assistant
+# Solar Accelerator Connect — integracja Home Assistant
 
 Czyta dane z falownika **wprost z bramki SA Connect w Twojej sieci lokalnej**.
 Bez chmury, bez klucza API, bez pośredników.
@@ -41,14 +41,13 @@ Kreator ma trzy kroki:
 
 1. **Adres** — z autowykrycia albo wpisany ręcznie.
 2. **Hasło portalu** — pomijane, gdy bramka go nie wymaga.
-3. **Przedrostek encji** — domyślnie producent falownika, np. `deye`.
+3. **Prefiks encji** — domyślnie producent falownika, np. `deye`.
 
-Przedrostek daje encje w postaci `sensor.deye_pv1_power` — **to ta sama
-konwencja, której używa integracja Solarman**. Przy przesiadce wystarczy usunąć
-Solarmana i podać ten sam przedrostek, żeby dashboardy i automatyzacje działały
-dalej bez przepisywania.
+Prefiks daje encje w postaci `sensor.deye_pv1_power`. Jeśli masz już dashboardy
+albo automatyzacje zbudowane pod takie nazwy, podaj ten sam prefiks — encje
+wrócą pod swoimi identyfikatorami i nie trzeba niczego przepisywać.
 
-> Przedrostek ustala się przy pierwszym uruchomieniu i potem trzyma go rejestr
+> Prefiks ustala się przy pierwszym uruchomieniu i potem trzyma go rejestr
 > encji — późniejsza zmiana wymagałaby przenazwania encji ręcznie.
 
 ## Interwał odpytywania

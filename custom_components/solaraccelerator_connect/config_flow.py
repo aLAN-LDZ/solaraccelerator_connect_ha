@@ -1,4 +1,4 @@
-"""Kreator: autowykrycie → hasło → przedrostek encji."""
+"""Kreator: autowykrycie → hasło → prefiks encji."""
 
 from __future__ import annotations
 
@@ -104,7 +104,7 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={"host": self._host},
         )
 
-    # ── Krok 3: przedrostek encji ───────────────────────────────────────────
+    # ── Krok 3: prefiks encji ───────────────────────────────────────────
 
     async def async_step_prefix(
         self, user_input: dict[str, Any] | None = None
@@ -171,7 +171,7 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def _async_probe(self, errors: dict[str, str]) -> ConfigFlowResult | None:
-        """Sprawdza kandydata i — gdy się uda — prowadzi do kroku przedrostka.
+        """Sprawdza kandydata i — gdy się uda — prowadzi do kroku prefiksu.
 
         Zwraca `None`, gdy trzeba jeszcze raz pokazać formularz; `errors` jest
         wtedy wypełnione.
@@ -204,7 +204,7 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def _title(self) -> str:
         name = str(self._status.get("inverter_name") or "").strip()
-        return name or "SolarAccelerator Connect"
+        return name or "Solar Accelerator Connect"
 
     def _set_title(self, fallback_hostname: str = "") -> None:
         """Wypełnia `flow_title` — wzorzec „nazwa (adres)", jak w innych
@@ -214,11 +214,11 @@ class SaConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             # "solaraccelerator-connect.local." → "solaraccelerator-connect"
             name = fallback_hostname.rstrip(".").removesuffix(".local")
         self.context["title_placeholders"] = {
-            "name": name or "SolarAccelerator Connect",
+            "name": name or "Solar Accelerator Connect",
             "host": self._host,
         }
 
     def _default_prefix(self) -> str:
-        """Producent falownika, np. `deye` — konwencja znana z Solarmana."""
+        """Producent falownika, np. `deye`."""
         manufacturer = str(self._status.get("inverter_manufacturer") or "").strip()
         return slugify(manufacturer) if manufacturer else FALLBACK_PREFIX

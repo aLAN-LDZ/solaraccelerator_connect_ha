@@ -1,10 +1,10 @@
 {
-  "title": "SolarAccelerator Connect",
+  "title": "Solar Accelerator Connect",
   "config": {
     "flow_title": "{name} ({host})",
     "step": {
       "user": {
-        "title": "SolarAccelerator Connect gateway",
+        "title": "Solar Accelerator Connect gateway",
         "description": "Enter the gateway address on your local network. Leave the password empty if the gateway portal does not require one.",
         "data": {
           "host": "IP address or hostname",
@@ -20,7 +20,7 @@
       },
       "prefix": {
         "title": "Entity prefix",
-        "description": "Entities will be named like {example}. Keeping the inverter manufacturer matches the Solarman naming convention, so existing dashboards and automations keep working.",
+        "description": "Entities will be named like {example}.",
         "data": {
           "prefix": "Prefix"
         }
