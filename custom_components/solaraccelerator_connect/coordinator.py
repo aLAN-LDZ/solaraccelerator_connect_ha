@@ -33,6 +33,10 @@ _LOGGER = logging.getLogger(__name__)
 # 32-bitowy licznik millis() bramki przekręca się po ~49 dniach pracy.
 _MILLIS_WRAP = 1 << 32
 
+# Powyżej tego progu „odstęp między odczytami" znaczy restart bramki, nie
+# wolniejszy poller — najdłuższy sensowny cykl to i tak minuta.
+_MAX_SANE_PERIOD_S = 3600
+
 
 @dataclass
 class GatewayData:
@@ -42,6 +46,8 @@ class GatewayData:
     readings: dict[str, object] = field(default_factory=dict)
     status: dict[str, object] = field(default_factory=dict)
     last_ok: datetime | None = None
+    age_s: float | None = None
+    read_period_s: float | None = None
 
     @property
     def inverter_online(self) -> bool:
@@ -67,6 +73,9 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
         # normalna — dopiero seria oznacza, że wartości naprawdę nie ma.
         self._missing: dict[str, int] = {}
         self._known_keys: set[str] = set()
+        # Do wyliczenia RZECZYWISTEGO odstępu między udanymi odczytami.
+        self._prev_last_ok_ms: int | None = None
+        self._read_period_s: float | None = None
         self._new_key_listeners: list[Callable[[set[str]], None]] = []
         self._status_due = 0.0
 
@@ -118,6 +127,8 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
             readings=readings,
             status=status,
             last_ok=_last_ok_timestamp(readings),
+            age_s=_data_age_seconds(readings),
+            read_period_s=self._track_read_period(readings),
         )
         self._notify_new_keys(values)
         return data
@@ -155,6 +166,29 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
             _LOGGER.debug("Interwał z bramki: %.1f s", seconds)
             self.update_interval = wanted
 
+    def _track_read_period(self, readings: dict[str, object]) -> float | None:
+        """Odstęp między dwoma kolejnymi UDANYMI odczytami falownika.
+
+        Sam wiek snapshotu (`age_s`) rysuje piłę: pytamy w swoim rytmie, więc
+        trafiamy raz tuż po odczycie, raz tuż przed — i wykres skacze 0…6…0,
+        choć bramka pracuje równo. Odstęp liczony z RÓŻNICY `last_ok_ms` między
+        odpowiedziami jest stabilny i pokazuje to, co naprawdę interesujące:
+        jak często bramka faktycznie dobija do falownika.
+        """
+        last_ok_ms = readings.get("last_ok_ms")
+        if not isinstance(last_ok_ms, int) or not last_ok_ms:
+            return self._read_period_s
+
+        prev = self._prev_last_ok_ms
+        if prev is not None and last_ok_ms != prev:
+            period = ((last_ok_ms - prev) % _MILLIS_WRAP) / 1000.0
+            # Restart bramki cofa `millis()` do zera — modulo zamienia to
+            # w kilkadziesiąt dni. Odrzucamy zamiast wstawiać pik na wykresie.
+            if period <= _MAX_SANE_PERIOD_S:
+                self._read_period_s = round(period, 2)
+        self._prev_last_ok_ms = last_ok_ms
+        return self._read_period_s
+
     def _notify_new_keys(self, values: dict[str, object]) -> None:
         fresh = set(values) - self._known_keys
         if not fresh:
@@ -163,6 +197,27 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
         _LOGGER.debug("Nowe metryki z bramki: %s", ", ".join(sorted(fresh)))
         for listener in self._new_key_listeners:
             listener(fresh)
+
+
+def _data_age_seconds(readings: dict[str, object]) -> float | None:
+    """Ile sekund minęło od ostatniego udanego odczytu falownika.
+
+    Liczymy różnicę WEWNĄTRZ jednej odpowiedzi (`now_ms - last_ok_ms`), a nie
+    względem zegara HA: to jedyna miara niezależna od opóźnienia sieci i od
+    tego, kiedy akurat zapytaliśmy. Odejmowanie modulo 2^32, bo licznik bramki
+    przekręca się po ~49 dniach pracy.
+
+    Wartość naturalnie faluje między zerem a długością cyklu pollera — bramka
+    oddaje snapshot z RAM-u, więc trafiamy raz tuż po odczycie, raz tuż przed.
+    """
+    now_ms = readings.get("now_ms")
+    last_ok_ms = readings.get("last_ok_ms")
+    if isinstance(now_ms, int) and isinstance(last_ok_ms, int) and last_ok_ms:
+        return round(((now_ms - last_ok_ms) % _MILLIS_WRAP) / 1000.0, 1)
+
+    # Bramka bez `last_ok_ms` (jeszcze ani jednego udanego cyklu) — nie ma
+    # czego mierzyć i lepiej pokazać brak wartości niż zero.
+    return None
 
 
 def _last_ok_timestamp(readings: dict[str, object]) -> datetime | None:

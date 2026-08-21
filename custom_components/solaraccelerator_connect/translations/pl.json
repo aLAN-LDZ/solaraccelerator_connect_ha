@@ -142,6 +142,9 @@
       "firmware_version": {
         "name": "Wersja firmware bramki"
       },
+      "free_heap": {
+        "name": "Wolna pamięć"
+      },
       "grid_ct_power_l1": {
         "name": "Moc CT L1"
       },
@@ -224,11 +227,14 @@
       "inverter_voltage_l3": {
         "name": "Napięcie falownika L3"
       },
+      "largest_free_block": {
+        "name": "Największy wolny blok"
+      },
       "last_error": {
         "name": "Ostatni błąd magistrali"
       },
       "last_ok": {
-        "name": "Ostatni udany odczyt"
+        "name": "Odstęp między odczytami"
       },
       "load_frequency": {
         "name": "Częstotliwość obciążenia"

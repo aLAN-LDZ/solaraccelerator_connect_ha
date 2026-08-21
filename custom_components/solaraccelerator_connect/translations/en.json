@@ -142,6 +142,9 @@
       "firmware_version": {
         "name": "Gateway firmware version"
       },
+      "free_heap": {
+        "name": "Free memory"
+      },
       "grid_ct_power_l1": {
         "name": "CT L1 power"
       },
@@ -224,11 +227,14 @@
       "inverter_voltage_l3": {
         "name": "Inverter L3 voltage"
       },
+      "largest_free_block": {
+        "name": "Largest free block"
+      },
       "last_error": {
         "name": "Last bus error"
       },
       "last_ok": {
-        "name": "Last successful read"
+        "name": "Read interval"
       },
       "load_frequency": {
         "name": "Load frequency"
