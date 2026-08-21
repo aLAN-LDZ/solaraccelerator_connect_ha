@@ -1,0 +1,480 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Bramka SolarAccelerator Connect",
+        "description": "Podaj adres bramki w sieci lokalnej. Hasło zostaw puste, jeśli portal bramki go nie wymaga.",
+        "data": {
+          "host": "Adres IP lub nazwa hosta",
+          "password": "Hasło portalu"
+        }
+      },
+      "password": {
+        "title": "Hasło portalu bramki",
+        "description": "Bramka {host} wymaga hasła ustawionego w kreatorze. Użytkownik to zawsze „admin”.",
+        "data": {
+          "password": "Hasło portalu"
+        }
+      },
+      "prefix": {
+        "title": "Przedrostek encji",
+        "description": "Encje dostaną nazwy w postaci {example}. Zostaw producenta falownika, żeby zachować konwencję znaną z integracji Solarman — dashboardy i automatyzacje przetrwają wtedy przesiadkę.",
+        "data": {
+          "prefix": "Przedrostek"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Hasło portalu się zmieniło",
+        "description": "Bramka {host} odrzuca dotychczasowe hasło. Podaj aktualne.",
+        "data": {
+          "password": "Hasło portalu"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Brak połączenia z bramką. Sprawdź adres i czy Home Assistant jest w tej samej sieci.",
+      "invalid_auth": "Bramka odrzuciła hasło portalu.",
+      "setup_incomplete": "Bramka pracuje w trybie punktu dostępowego — dokończ jej kreator, zanim dodasz integrację."
+    },
+    "abort": {
+      "already_configured": "Ta bramka jest już dodana.",
+      "cannot_connect": "Brak połączenia z bramką.",
+      "reauth_successful": "Hasło zaktualizowane."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery2_current": {
+        "name": "Prąd baterii 2"
+      },
+      "battery2_power": {
+        "name": "Moc baterii 2"
+      },
+      "battery2_soc": {
+        "name": "Naładowanie baterii 2"
+      },
+      "battery2_temperature": {
+        "name": "Temperatura baterii 2"
+      },
+      "battery2_voltage": {
+        "name": "Napięcie baterii 2"
+      },
+      "battery_corrected_capacity": {
+        "name": "Pojemność baterii (skorygowana)"
+      },
+      "battery_current": {
+        "name": "Prąd baterii"
+      },
+      "battery_power": {
+        "name": "Moc baterii"
+      },
+      "battery_soc": {
+        "name": "Naładowanie baterii"
+      },
+      "battery_soh": {
+        "name": "Kondycja baterii"
+      },
+      "battery_temp": {
+        "name": "Temperatura baterii"
+      },
+      "battery_voltage": {
+        "name": "Napięcie baterii"
+      },
+      "blocks_ok": {
+        "name": "Bloki odczytane"
+      },
+      "blocks_total": {
+        "name": "Bloki w mapie"
+      },
+      "cycle_ms": {
+        "name": "Czas cyklu odczytu"
+      },
+      "daily_generator_production": {
+        "name": "Dzienna produkcja generatora"
+      },
+      "day_battery_charge": {
+        "name": "Dzienne ładowanie baterii"
+      },
+      "day_battery_discharge": {
+        "name": "Dzienne rozładowanie baterii"
+      },
+      "day_grid_export": {
+        "name": "Dzienne oddanie do sieci"
+      },
+      "day_grid_import": {
+        "name": "Dzienny pobór z sieci"
+      },
+      "day_load_energy": {
+        "name": "Dzienne zużycie"
+      },
+      "day_pv_energy": {
+        "name": "Dzienna produkcja PV"
+      },
+      "dc_transformer_temp": {
+        "name": "Temperatura transformatora DC"
+      },
+      "external_ct_l1_current": {
+        "name": "Prąd CT zewnętrznego L1"
+      },
+      "external_ct_l1_power": {
+        "name": "Moc CT zewnętrznego L1"
+      },
+      "external_ct_l2_current": {
+        "name": "Prąd CT zewnętrznego L2"
+      },
+      "external_ct_l2_power": {
+        "name": "Moc CT zewnętrznego L2"
+      },
+      "external_ct_l3_current": {
+        "name": "Prąd CT zewnętrznego L3"
+      },
+      "external_ct_l3_power": {
+        "name": "Moc CT zewnętrznego L3"
+      },
+      "external_ct_power": {
+        "name": "Moc CT zewnętrznego"
+      },
+      "failed_cycles": {
+        "name": "Nieudane cykle z rzędu"
+      },
+      "firmware_version": {
+        "name": "Wersja firmware bramki"
+      },
+      "grid_ct_power_l1": {
+        "name": "Moc CT L1"
+      },
+      "grid_ct_power_l2": {
+        "name": "Moc CT L2"
+      },
+      "grid_ct_power_l3": {
+        "name": "Moc CT L3"
+      },
+      "grid_frequency": {
+        "name": "Częstotliwość sieci"
+      },
+      "grid_l1_power": {
+        "name": "Moc sieci L1"
+      },
+      "grid_l1_voltage": {
+        "name": "Napięcie sieci L1"
+      },
+      "grid_l2_power": {
+        "name": "Moc sieci L2"
+      },
+      "grid_l2_voltage": {
+        "name": "Napięcie sieci L2"
+      },
+      "grid_l3_power": {
+        "name": "Moc sieci L3"
+      },
+      "grid_l3_voltage": {
+        "name": "Napięcie sieci L3"
+      },
+      "grid_power": {
+        "name": "Moc sieci"
+      },
+      "grid_power_factor": {
+        "name": "Współczynnik mocy"
+      },
+      "internal_ct_l1_current": {
+        "name": "Prąd CT wewnętrznego L1"
+      },
+      "internal_ct_l2_current": {
+        "name": "Prąd CT wewnętrznego L2"
+      },
+      "internal_ct_l3_current": {
+        "name": "Prąd CT wewnętrznego L3"
+      },
+      "internal_ct_power": {
+        "name": "Moc CT wewnętrznego"
+      },
+      "inverter_current_l1": {
+        "name": "Prąd falownika L1"
+      },
+      "inverter_current_l2": {
+        "name": "Prąd falownika L2"
+      },
+      "inverter_current_l3": {
+        "name": "Prąd falownika L3"
+      },
+      "inverter_power": {
+        "name": "Moc falownika"
+      },
+      "inverter_status": {
+        "name": "Stan falownika",
+        "state": {
+          "off": "Wyłączony",
+          "inverter": "Falownik",
+          "grid": "Sieć",
+          "inverter_grid": "Falownik + sieć",
+          "generator": "Generator",
+          "inverter_generator": "Falownik + generator",
+          "grid_generator": "Sieć + generator",
+          "inverter_grid_generator": "Falownik + sieć + generator"
+        }
+      },
+      "inverter_voltage_l1": {
+        "name": "Napięcie falownika L1"
+      },
+      "inverter_voltage_l2": {
+        "name": "Napięcie falownika L2"
+      },
+      "inverter_voltage_l3": {
+        "name": "Napięcie falownika L3"
+      },
+      "last_error": {
+        "name": "Ostatni błąd magistrali"
+      },
+      "last_ok": {
+        "name": "Ostatni udany odczyt"
+      },
+      "load_frequency": {
+        "name": "Częstotliwość obciążenia"
+      },
+      "load_l1_voltage": {
+        "name": "Napięcie obciążenia L1"
+      },
+      "load_l2_voltage": {
+        "name": "Napięcie obciążenia L2"
+      },
+      "load_l3_voltage": {
+        "name": "Napięcie obciążenia L3"
+      },
+      "load_power": {
+        "name": "Moc obciążenia"
+      },
+      "load_power_l1": {
+        "name": "Moc obciążenia L1"
+      },
+      "load_power_l2": {
+        "name": "Moc obciążenia L2"
+      },
+      "load_power_l3": {
+        "name": "Moc obciążenia L3"
+      },
+      "load_ups_l1_power": {
+        "name": "Moc UPS L1"
+      },
+      "load_ups_l2_power": {
+        "name": "Moc UPS L2"
+      },
+      "load_ups_l3_power": {
+        "name": "Moc UPS L3"
+      },
+      "load_ups_power": {
+        "name": "Moc UPS"
+      },
+      "map_version": {
+        "name": "Wersja mapy rejestrów"
+      },
+      "metrics": {
+        "name": "Liczba metryk"
+      },
+      "output_frequency": {
+        "name": "Częstotliwość wyjściowa"
+      },
+      "output_l1_power": {
+        "name": "Moc wyjściowa L1"
+      },
+      "output_l2_power": {
+        "name": "Moc wyjściowa L2"
+      },
+      "output_l3_power": {
+        "name": "Moc wyjściowa L3"
+      },
+      "poll_interval": {
+        "name": "Interwał odpytywania"
+      },
+      "pv1_current": {
+        "name": "Prąd PV string 1"
+      },
+      "pv1_power": {
+        "name": "Moc PV string 1"
+      },
+      "pv1_voltage": {
+        "name": "Napięcie PV string 1"
+      },
+      "pv2_current": {
+        "name": "Prąd PV string 2"
+      },
+      "pv2_power": {
+        "name": "Moc PV string 2"
+      },
+      "pv2_voltage": {
+        "name": "Napięcie PV string 2"
+      },
+      "pv3_current": {
+        "name": "Prąd PV string 3"
+      },
+      "pv3_power": {
+        "name": "Moc PV string 3"
+      },
+      "pv3_voltage": {
+        "name": "Napięcie PV string 3"
+      },
+      "pv4_current": {
+        "name": "Prąd PV string 4"
+      },
+      "pv4_power": {
+        "name": "Moc PV string 4"
+      },
+      "pv4_voltage": {
+        "name": "Napięcie PV string 4"
+      },
+      "radiator_temp": {
+        "name": "Temperatura radiatora"
+      },
+      "rssi": {
+        "name": "Siła sygnału Wi-Fi"
+      },
+      "running_status": {
+        "name": "Stan pracy",
+        "state": {
+          "standby": "Czuwanie",
+          "selfcheck": "Autotest",
+          "normal": "Praca normalna",
+          "alarm": "Alarm",
+          "fault": "Awaria"
+        }
+      },
+      "set_export_surplus_power": {
+        "name": "Limit oddawania nadwyżki"
+      },
+      "set_gen_config": {
+        "name": "Rejestr gen_config"
+      },
+      "set_grid_peak_shaving_power": {
+        "name": "Limit mocy z sieci (peak shaving)"
+      },
+      "set_max_charge_current": {
+        "name": "Maks. prąd ładowania"
+      },
+      "set_max_discharge_current": {
+        "name": "Maks. prąd rozładowania"
+      },
+      "set_program_charging_1": {
+        "name": "Harmonogram 1: ładowanie z sieci"
+      },
+      "set_program_charging_2": {
+        "name": "Harmonogram 2: ładowanie z sieci"
+      },
+      "set_program_charging_3": {
+        "name": "Harmonogram 3: ładowanie z sieci"
+      },
+      "set_program_charging_4": {
+        "name": "Harmonogram 4: ładowanie z sieci"
+      },
+      "set_program_charging_5": {
+        "name": "Harmonogram 5: ładowanie z sieci"
+      },
+      "set_program_charging_6": {
+        "name": "Harmonogram 6: ładowanie z sieci"
+      },
+      "set_program_power_1": {
+        "name": "Harmonogram 1: moc"
+      },
+      "set_program_power_2": {
+        "name": "Harmonogram 2: moc"
+      },
+      "set_program_power_3": {
+        "name": "Harmonogram 3: moc"
+      },
+      "set_program_power_4": {
+        "name": "Harmonogram 4: moc"
+      },
+      "set_program_power_5": {
+        "name": "Harmonogram 5: moc"
+      },
+      "set_program_power_6": {
+        "name": "Harmonogram 6: moc"
+      },
+      "set_program_soc_1": {
+        "name": "Harmonogram 1: SOC"
+      },
+      "set_program_soc_2": {
+        "name": "Harmonogram 2: SOC"
+      },
+      "set_program_soc_3": {
+        "name": "Harmonogram 3: SOC"
+      },
+      "set_program_soc_4": {
+        "name": "Harmonogram 4: SOC"
+      },
+      "set_program_soc_5": {
+        "name": "Harmonogram 5: SOC"
+      },
+      "set_program_soc_6": {
+        "name": "Harmonogram 6: SOC"
+      },
+      "set_program_time_1": {
+        "name": "Harmonogram 1: godzina"
+      },
+      "set_program_time_2": {
+        "name": "Harmonogram 2: godzina"
+      },
+      "set_program_time_3": {
+        "name": "Harmonogram 3: godzina"
+      },
+      "set_program_time_4": {
+        "name": "Harmonogram 4: godzina"
+      },
+      "set_program_time_5": {
+        "name": "Harmonogram 5: godzina"
+      },
+      "set_program_time_6": {
+        "name": "Harmonogram 6: godzina"
+      },
+      "set_pv_power": {
+        "name": "Zadeklarowana moc PV"
+      },
+      "set_tou_config": {
+        "name": "Rejestr tou_config"
+      },
+      "set_work_mode": {
+        "name": "Tryb pracy",
+        "state": {
+          "selling_first": "Sprzedaż nadwyżek",
+          "zero_export_to_load": "Zero eksportu (odbiory)",
+          "zero_export_to_ct": "Zero eksportu (CT)"
+        }
+      },
+      "total_battery_charge": {
+        "name": "Całkowite ładowanie baterii"
+      },
+      "total_battery_discharge": {
+        "name": "Całkowite rozładowanie baterii"
+      },
+      "total_consumption": {
+        "name": "Całkowite zużycie"
+      },
+      "total_energy_bought": {
+        "name": "Całkowity pobór z sieci"
+      },
+      "total_energy_sold": {
+        "name": "Całkowite oddanie do sieci"
+      },
+      "total_generator_production": {
+        "name": "Całkowita produkcja generatora"
+      },
+      "total_pv_generation": {
+        "name": "Całkowita produkcja PV"
+      },
+      "uptime": {
+        "name": "Czas pracy bramki"
+      }
+    },
+    "binary_sensor": {
+      "inverter_online": {
+        "name": "Falownik odpowiada"
+      },
+      "partial_read": {
+        "name": "Odczyt niekompletny"
+      }
+    },
+    "button": {
+      "ota_check": {
+        "name": "Sprawdź aktualizację firmware"
+      }
+    }
+  }
+}

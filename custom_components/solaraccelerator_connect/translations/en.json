@@ -1,0 +1,480 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolarAccelerator Connect gateway",
+        "description": "Enter the gateway address on your local network. Leave the password empty if the gateway portal does not require one.",
+        "data": {
+          "host": "IP address or hostname",
+          "password": "Portal password"
+        }
+      },
+      "password": {
+        "title": "Gateway portal password",
+        "description": "Gateway {host} requires the password set during its setup wizard. The username is always \"admin\".",
+        "data": {
+          "password": "Portal password"
+        }
+      },
+      "prefix": {
+        "title": "Entity prefix",
+        "description": "Entities will be named like {example}. Keeping the inverter manufacturer matches the Solarman naming convention, so existing dashboards and automations keep working.",
+        "data": {
+          "prefix": "Prefix"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Portal password changed",
+        "description": "Gateway {host} rejects the stored password. Enter the current one.",
+        "data": {
+          "password": "Portal password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the gateway. Check the address and that Home Assistant is on the same network.",
+      "invalid_auth": "The gateway rejected the portal password.",
+      "setup_incomplete": "The gateway is in access point mode — finish its setup wizard before adding the integration."
+    },
+    "abort": {
+      "already_configured": "This gateway is already configured.",
+      "cannot_connect": "Cannot reach the gateway.",
+      "reauth_successful": "Password updated."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery2_current": {
+        "name": "Battery 2 current"
+      },
+      "battery2_power": {
+        "name": "Battery 2 power"
+      },
+      "battery2_soc": {
+        "name": "Battery 2 SOC"
+      },
+      "battery2_temperature": {
+        "name": "Battery 2 temperature"
+      },
+      "battery2_voltage": {
+        "name": "Battery 2 voltage"
+      },
+      "battery_corrected_capacity": {
+        "name": "Battery corrected capacity"
+      },
+      "battery_current": {
+        "name": "Battery current"
+      },
+      "battery_power": {
+        "name": "Battery power"
+      },
+      "battery_soc": {
+        "name": "Battery SOC"
+      },
+      "battery_soh": {
+        "name": "Battery SOH"
+      },
+      "battery_temp": {
+        "name": "Battery temperature"
+      },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      },
+      "blocks_ok": {
+        "name": "Blocks read"
+      },
+      "blocks_total": {
+        "name": "Blocks in map"
+      },
+      "cycle_ms": {
+        "name": "Read cycle time"
+      },
+      "daily_generator_production": {
+        "name": "Daily generator production"
+      },
+      "day_battery_charge": {
+        "name": "Daily battery charge"
+      },
+      "day_battery_discharge": {
+        "name": "Daily battery discharge"
+      },
+      "day_grid_export": {
+        "name": "Daily grid export"
+      },
+      "day_grid_import": {
+        "name": "Daily grid import"
+      },
+      "day_load_energy": {
+        "name": "Daily load energy"
+      },
+      "day_pv_energy": {
+        "name": "Daily PV energy"
+      },
+      "dc_transformer_temp": {
+        "name": "DC transformer temperature"
+      },
+      "external_ct_l1_current": {
+        "name": "External CT L1 current"
+      },
+      "external_ct_l1_power": {
+        "name": "External CT L1 power"
+      },
+      "external_ct_l2_current": {
+        "name": "External CT L2 current"
+      },
+      "external_ct_l2_power": {
+        "name": "External CT L2 power"
+      },
+      "external_ct_l3_current": {
+        "name": "External CT L3 current"
+      },
+      "external_ct_l3_power": {
+        "name": "External CT L3 power"
+      },
+      "external_ct_power": {
+        "name": "External CT power"
+      },
+      "failed_cycles": {
+        "name": "Consecutive failed cycles"
+      },
+      "firmware_version": {
+        "name": "Gateway firmware version"
+      },
+      "grid_ct_power_l1": {
+        "name": "CT L1 power"
+      },
+      "grid_ct_power_l2": {
+        "name": "CT L2 power"
+      },
+      "grid_ct_power_l3": {
+        "name": "CT L3 power"
+      },
+      "grid_frequency": {
+        "name": "Grid frequency"
+      },
+      "grid_l1_power": {
+        "name": "Grid L1 power"
+      },
+      "grid_l1_voltage": {
+        "name": "Grid L1 voltage"
+      },
+      "grid_l2_power": {
+        "name": "Grid L2 power"
+      },
+      "grid_l2_voltage": {
+        "name": "Grid L2 voltage"
+      },
+      "grid_l3_power": {
+        "name": "Grid L3 power"
+      },
+      "grid_l3_voltage": {
+        "name": "Grid L3 voltage"
+      },
+      "grid_power": {
+        "name": "Grid power"
+      },
+      "grid_power_factor": {
+        "name": "Power factor"
+      },
+      "internal_ct_l1_current": {
+        "name": "Internal CT L1 current"
+      },
+      "internal_ct_l2_current": {
+        "name": "Internal CT L2 current"
+      },
+      "internal_ct_l3_current": {
+        "name": "Internal CT L3 current"
+      },
+      "internal_ct_power": {
+        "name": "Internal CT power"
+      },
+      "inverter_current_l1": {
+        "name": "Inverter L1 current"
+      },
+      "inverter_current_l2": {
+        "name": "Inverter L2 current"
+      },
+      "inverter_current_l3": {
+        "name": "Inverter L3 current"
+      },
+      "inverter_power": {
+        "name": "Inverter power"
+      },
+      "inverter_status": {
+        "name": "Inverter status",
+        "state": {
+          "off": "Off",
+          "inverter": "Inverter",
+          "grid": "Grid",
+          "inverter_grid": "Inverter-Grid",
+          "generator": "Generator",
+          "inverter_generator": "Inverter-Generator",
+          "grid_generator": "Grid-Generator",
+          "inverter_grid_generator": "Inverter-Grid-Generator"
+        }
+      },
+      "inverter_voltage_l1": {
+        "name": "Inverter L1 voltage"
+      },
+      "inverter_voltage_l2": {
+        "name": "Inverter L2 voltage"
+      },
+      "inverter_voltage_l3": {
+        "name": "Inverter L3 voltage"
+      },
+      "last_error": {
+        "name": "Last bus error"
+      },
+      "last_ok": {
+        "name": "Last successful read"
+      },
+      "load_frequency": {
+        "name": "Load frequency"
+      },
+      "load_l1_voltage": {
+        "name": "Load L1 voltage"
+      },
+      "load_l2_voltage": {
+        "name": "Load L2 voltage"
+      },
+      "load_l3_voltage": {
+        "name": "Load L3 voltage"
+      },
+      "load_power": {
+        "name": "Load power"
+      },
+      "load_power_l1": {
+        "name": "Load L1 power"
+      },
+      "load_power_l2": {
+        "name": "Load L2 power"
+      },
+      "load_power_l3": {
+        "name": "Load L3 power"
+      },
+      "load_ups_l1_power": {
+        "name": "UPS L1 power"
+      },
+      "load_ups_l2_power": {
+        "name": "UPS L2 power"
+      },
+      "load_ups_l3_power": {
+        "name": "UPS L3 power"
+      },
+      "load_ups_power": {
+        "name": "UPS power"
+      },
+      "map_version": {
+        "name": "Register map version"
+      },
+      "metrics": {
+        "name": "Metric count"
+      },
+      "output_frequency": {
+        "name": "Output frequency"
+      },
+      "output_l1_power": {
+        "name": "Output L1 power"
+      },
+      "output_l2_power": {
+        "name": "Output L2 power"
+      },
+      "output_l3_power": {
+        "name": "Output L3 power"
+      },
+      "poll_interval": {
+        "name": "Poll interval"
+      },
+      "pv1_current": {
+        "name": "PV1 current"
+      },
+      "pv1_power": {
+        "name": "PV1 power"
+      },
+      "pv1_voltage": {
+        "name": "PV1 voltage"
+      },
+      "pv2_current": {
+        "name": "PV2 current"
+      },
+      "pv2_power": {
+        "name": "PV2 power"
+      },
+      "pv2_voltage": {
+        "name": "PV2 voltage"
+      },
+      "pv3_current": {
+        "name": "PV3 current"
+      },
+      "pv3_power": {
+        "name": "PV3 power"
+      },
+      "pv3_voltage": {
+        "name": "PV3 voltage"
+      },
+      "pv4_current": {
+        "name": "PV4 current"
+      },
+      "pv4_power": {
+        "name": "PV4 power"
+      },
+      "pv4_voltage": {
+        "name": "PV4 voltage"
+      },
+      "radiator_temp": {
+        "name": "Radiator temperature"
+      },
+      "rssi": {
+        "name": "Wi-Fi signal strength"
+      },
+      "running_status": {
+        "name": "Running status",
+        "state": {
+          "standby": "Standby",
+          "selfcheck": "Self-check",
+          "normal": "Normal",
+          "alarm": "Alarm",
+          "fault": "Fault"
+        }
+      },
+      "set_export_surplus_power": {
+        "name": "Export surplus power limit"
+      },
+      "set_gen_config": {
+        "name": "Register gen_config"
+      },
+      "set_grid_peak_shaving_power": {
+        "name": "Grid peak shaving power"
+      },
+      "set_max_charge_current": {
+        "name": "Max charge current"
+      },
+      "set_max_discharge_current": {
+        "name": "Max discharge current"
+      },
+      "set_program_charging_1": {
+        "name": "Program 1 grid charging"
+      },
+      "set_program_charging_2": {
+        "name": "Program 2 grid charging"
+      },
+      "set_program_charging_3": {
+        "name": "Program 3 grid charging"
+      },
+      "set_program_charging_4": {
+        "name": "Program 4 grid charging"
+      },
+      "set_program_charging_5": {
+        "name": "Program 5 grid charging"
+      },
+      "set_program_charging_6": {
+        "name": "Program 6 grid charging"
+      },
+      "set_program_power_1": {
+        "name": "Program 1 power"
+      },
+      "set_program_power_2": {
+        "name": "Program 2 power"
+      },
+      "set_program_power_3": {
+        "name": "Program 3 power"
+      },
+      "set_program_power_4": {
+        "name": "Program 4 power"
+      },
+      "set_program_power_5": {
+        "name": "Program 5 power"
+      },
+      "set_program_power_6": {
+        "name": "Program 6 power"
+      },
+      "set_program_soc_1": {
+        "name": "Program 1 SOC"
+      },
+      "set_program_soc_2": {
+        "name": "Program 2 SOC"
+      },
+      "set_program_soc_3": {
+        "name": "Program 3 SOC"
+      },
+      "set_program_soc_4": {
+        "name": "Program 4 SOC"
+      },
+      "set_program_soc_5": {
+        "name": "Program 5 SOC"
+      },
+      "set_program_soc_6": {
+        "name": "Program 6 SOC"
+      },
+      "set_program_time_1": {
+        "name": "Program 1 time"
+      },
+      "set_program_time_2": {
+        "name": "Program 2 time"
+      },
+      "set_program_time_3": {
+        "name": "Program 3 time"
+      },
+      "set_program_time_4": {
+        "name": "Program 4 time"
+      },
+      "set_program_time_5": {
+        "name": "Program 5 time"
+      },
+      "set_program_time_6": {
+        "name": "Program 6 time"
+      },
+      "set_pv_power": {
+        "name": "Declared PV power"
+      },
+      "set_tou_config": {
+        "name": "Register tou_config"
+      },
+      "set_work_mode": {
+        "name": "Work mode",
+        "state": {
+          "selling_first": "Selling first",
+          "zero_export_to_load": "Zero export to load",
+          "zero_export_to_ct": "Zero export to CT"
+        }
+      },
+      "total_battery_charge": {
+        "name": "Total battery charge"
+      },
+      "total_battery_discharge": {
+        "name": "Total battery discharge"
+      },
+      "total_consumption": {
+        "name": "Total consumption"
+      },
+      "total_energy_bought": {
+        "name": "Total energy bought"
+      },
+      "total_energy_sold": {
+        "name": "Total energy sold"
+      },
+      "total_generator_production": {
+        "name": "Total generator production"
+      },
+      "total_pv_generation": {
+        "name": "Total PV generation"
+      },
+      "uptime": {
+        "name": "Gateway uptime"
+      }
+    },
+    "binary_sensor": {
+      "inverter_online": {
+        "name": "Inverter responding"
+      },
+      "partial_read": {
+        "name": "Incomplete read"
+      }
+    },
+    "button": {
+      "ota_check": {
+        "name": "Check firmware update"
+      }
+    }
+  }
+}

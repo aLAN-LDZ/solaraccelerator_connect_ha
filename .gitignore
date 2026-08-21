@@ -1,0 +1,6 @@
+/tests
+/scripts
+pytest.ini
+__pycache__
+.pytest_cache
+.venv
