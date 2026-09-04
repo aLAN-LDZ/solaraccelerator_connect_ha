@@ -17,6 +17,10 @@ GATEWAY_USERNAME = "admin"
 API_STATUS = "/api/status"
 API_READINGS = "/api/inverter/readings"
 API_OTA_CHECK = "/api/ota/check"
+# Zapis pojedynczego rejestru — dwuetapowy jak odczyt diagnostyczny: POST zleca,
+# GET odbiera wynik. Transakcja Modbus z weryfikacją trwa dłużej, niż wolno
+# blokować callback serwera bramki. Firmware ≥ 0.1.14.
+API_MODBUS_WRITE = "/api/modbus/write"
 
 # === Czasy ===
 # Interwał odczytów podaje bramka (`poll_interval_ms`). Ten jest używany tylko
@@ -38,3 +42,13 @@ SETTING_PREFIX = "set_"
 
 # Domyślny prefiks encji, gdy bramka nie zna producenta falownika.
 FALLBACK_PREFIX = "inverter"
+
+# === Zapis nastaw ===
+# Firmware, od którego bramka ma `/api/modbus/write`. Na starszej encje
+# sterujące powstaną, ale zapis zwróci błąd — i tak jest uczciwiej niż ukryć
+# połowę integracji przed użytkownikiem, który po prostu nie wgrał aktualizacji.
+MIN_WRITE_FIRMWARE = "0.1.14"
+# Zapis to do 2 prób po 2 s, przerwa 400 ms i weryfikacja odczytem po 500 ms.
+# W najgorszym razie ~6,5 s — z zapasem na zajętą magistralę.
+WRITE_TIMEOUT = 12.0
+WRITE_POLL_INTERVAL = 0.4

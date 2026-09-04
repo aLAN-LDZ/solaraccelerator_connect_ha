@@ -478,6 +478,107 @@
       "ota_check": {
         "name": "Sprawdź aktualizację firmware"
       }
+    },
+    "number": {
+      "set_export_surplus_power": {
+        "name": "Limit oddawania nadwyżki"
+      },
+      "set_grid_peak_shaving_power": {
+        "name": "Limit mocy z sieci (peak shaving)"
+      },
+      "set_max_charge_current": {
+        "name": "Maks. prąd ładowania"
+      },
+      "set_max_discharge_current": {
+        "name": "Maks. prąd rozładowania"
+      },
+      "set_program_power_1": {
+        "name": "Harmonogram 1: moc"
+      },
+      "set_program_power_2": {
+        "name": "Harmonogram 2: moc"
+      },
+      "set_program_power_3": {
+        "name": "Harmonogram 3: moc"
+      },
+      "set_program_power_4": {
+        "name": "Harmonogram 4: moc"
+      },
+      "set_program_power_5": {
+        "name": "Harmonogram 5: moc"
+      },
+      "set_program_power_6": {
+        "name": "Harmonogram 6: moc"
+      },
+      "set_program_soc_1": {
+        "name": "Harmonogram 1: SOC"
+      },
+      "set_program_soc_2": {
+        "name": "Harmonogram 2: SOC"
+      },
+      "set_program_soc_3": {
+        "name": "Harmonogram 3: SOC"
+      },
+      "set_program_soc_4": {
+        "name": "Harmonogram 4: SOC"
+      },
+      "set_program_soc_5": {
+        "name": "Harmonogram 5: SOC"
+      },
+      "set_program_soc_6": {
+        "name": "Harmonogram 6: SOC"
+      },
+      "set_pv_power": {
+        "name": "Zadeklarowana moc PV"
+      }
+    },
+    "select": {
+      "set_program_charging_1": {
+        "name": "Harmonogram 1: ładowanie z sieci"
+      },
+      "set_program_charging_2": {
+        "name": "Harmonogram 2: ładowanie z sieci"
+      },
+      "set_program_charging_3": {
+        "name": "Harmonogram 3: ładowanie z sieci"
+      },
+      "set_program_charging_4": {
+        "name": "Harmonogram 4: ładowanie z sieci"
+      },
+      "set_program_charging_5": {
+        "name": "Harmonogram 5: ładowanie z sieci"
+      },
+      "set_program_charging_6": {
+        "name": "Harmonogram 6: ładowanie z sieci"
+      },
+      "set_work_mode": {
+        "name": "Tryb pracy"
+      }
+    },
+    "switch": {
+      "grid_peak_shaving": {
+        "name": "Peak shaving z sieci"
+      }
+    },
+    "time": {
+      "set_program_time_1": {
+        "name": "Harmonogram 1: godzina"
+      },
+      "set_program_time_2": {
+        "name": "Harmonogram 2: godzina"
+      },
+      "set_program_time_3": {
+        "name": "Harmonogram 3: godzina"
+      },
+      "set_program_time_4": {
+        "name": "Harmonogram 4: godzina"
+      },
+      "set_program_time_5": {
+        "name": "Harmonogram 5: godzina"
+      },
+      "set_program_time_6": {
+        "name": "Harmonogram 6: godzina"
+      }
     }
   }
 }

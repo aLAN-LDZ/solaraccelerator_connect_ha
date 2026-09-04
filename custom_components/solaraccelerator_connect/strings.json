@@ -461,6 +461,107 @@
       "ota_check": {
         "name": "Check firmware update"
       }
+    },
+    "number": {
+      "set_export_surplus_power": {
+        "name": "Export Surplus Power"
+      },
+      "set_grid_peak_shaving_power": {
+        "name": "Grid Peak shaving"
+      },
+      "set_max_charge_current": {
+        "name": "Battery Max Charging Current"
+      },
+      "set_max_discharge_current": {
+        "name": "Battery Max Discharging Current"
+      },
+      "set_program_power_1": {
+        "name": "Program 1 Power"
+      },
+      "set_program_power_2": {
+        "name": "Program 2 Power"
+      },
+      "set_program_power_3": {
+        "name": "Program 3 Power"
+      },
+      "set_program_power_4": {
+        "name": "Program 4 Power"
+      },
+      "set_program_power_5": {
+        "name": "Program 5 Power"
+      },
+      "set_program_power_6": {
+        "name": "Program 6 Power"
+      },
+      "set_program_soc_1": {
+        "name": "Program 1 SOC"
+      },
+      "set_program_soc_2": {
+        "name": "Program 2 SOC"
+      },
+      "set_program_soc_3": {
+        "name": "Program 3 SOC"
+      },
+      "set_program_soc_4": {
+        "name": "Program 4 SOC"
+      },
+      "set_program_soc_5": {
+        "name": "Program 5 SOC"
+      },
+      "set_program_soc_6": {
+        "name": "Program 6 SOC"
+      },
+      "set_pv_power": {
+        "name": "PV Power"
+      }
+    },
+    "select": {
+      "set_program_charging_1": {
+        "name": "Program 1 Charging"
+      },
+      "set_program_charging_2": {
+        "name": "Program 2 Charging"
+      },
+      "set_program_charging_3": {
+        "name": "Program 3 Charging"
+      },
+      "set_program_charging_4": {
+        "name": "Program 4 Charging"
+      },
+      "set_program_charging_5": {
+        "name": "Program 5 Charging"
+      },
+      "set_program_charging_6": {
+        "name": "Program 6 Charging"
+      },
+      "set_work_mode": {
+        "name": "Work Mode"
+      }
+    },
+    "switch": {
+      "grid_peak_shaving": {
+        "name": "Grid Peak Shaving"
+      }
+    },
+    "time": {
+      "set_program_time_1": {
+        "name": "Program 1 Time"
+      },
+      "set_program_time_2": {
+        "name": "Program 2 Time"
+      },
+      "set_program_time_3": {
+        "name": "Program 3 Time"
+      },
+      "set_program_time_4": {
+        "name": "Program 4 Time"
+      },
+      "set_program_time_5": {
+        "name": "Program 5 Time"
+      },
+      "set_program_time_6": {
+        "name": "Program 6 Time"
+      }
     }
   }
 }

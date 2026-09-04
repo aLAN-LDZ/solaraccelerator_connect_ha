@@ -11,17 +11,21 @@ a nie brakiem ustawienia.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
 import aiohttp
 
 from .const import (
+    API_MODBUS_WRITE,
     API_OTA_CHECK,
     API_READINGS,
     API_STATUS,
     GATEWAY_USERNAME,
     REQUEST_TIMEOUT,
+    WRITE_POLL_INTERVAL,
+    WRITE_TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,6 +43,10 @@ class GatewayNotReady(GatewayError):
     """Bramka żyje, ale siedzi w kreatorze (tryb AP) — nie ma z czego czytać."""
 
 
+class GatewayWriteError(GatewayError):
+    """Zapis nie wszedł: magistrala milczy albo falownik cofnął wartość."""
+
+
 class GatewayApi:
     """Cienka warstwa nad `/api/*` bramki."""
 
@@ -51,6 +59,11 @@ class GatewayApi:
         self._session = session
         self._host = host
         self._password = password
+        # Bramka obsługuje JEDEN zapis naraz (odpowiada 409 na kolejny) —
+        # a Home Assistant potrafi wysłać kilka nastaw w jednej sekundzie,
+        # choćby ze skryptu. Kolejkujemy je tutaj, zamiast oddawać
+        # użytkownikowi błąd za coś, co jest zwykłym wyścigiem.
+        self._write_lock = asyncio.Lock()
 
     @property
     def host(self) -> str:
@@ -70,19 +83,31 @@ class GatewayApi:
             return None
         return aiohttp.BasicAuth(GATEWAY_USERNAME, self._password)
 
-    async def _request(self, method: str, path: str) -> dict[str, Any]:
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         url = f"{self.base_url}{path}"
         try:
             async with self._session.request(
                 method,
                 url,
+                params=params,
                 auth=self._auth,
                 timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
             ) as resp:
                 if resp.status == 401:
                     raise GatewayAuthError(f"{path}: bramka wymaga hasła portalu")
                 if resp.status >= 400:
-                    raise GatewayError(f"{path}: HTTP {resp.status}")
+                    # Bramka odrzuca żądania tekstem, nie JSON-em — powód
+                    # („kreator niedokonczony", „poprzedni zapis jeszcze trwa")
+                    # jest dla użytkownika ważniejszy niż sam numer statusu.
+                    detail = (await resp.text()).strip()
+                    raise GatewayError(
+                        f"{path}: HTTP {resp.status}{f' — {detail}' if detail else ''}"
+                    )
                 # Bramka deklaruje application/json, ale przy pustych
                 # odpowiedziach (np. /api/ota/check) nie ma czego parsować.
                 if resp.content_length == 0:
@@ -108,6 +133,42 @@ class GatewayApi:
 
     async def async_get_readings(self) -> dict[str, Any]:
         return await self._request("GET", API_READINGS)
+
+    async def async_write_register(self, register: int, value: int, fc: int = 16) -> int:
+        """Zapisuje jeden rejestr i CZEKA na potwierdzenie odczytem.
+
+        Bramka wykonuje zapis w swoim tasku Modbus: dwie próby, a po nich
+        weryfikacja odczytem — bo Deye potrafi potwierdzić zapis i po chwili
+        cofnąć nastawę. Czekamy na ten werdykt, zamiast raportować sukces
+        w chwili przyjęcia zlecenia: encja, która mówi „ustawione", gdy nastawa
+        nie weszła, jest gorsza niż encja, która chwilę myśli.
+
+        Zwraca wartość faktycznie odczytaną z rejestru.
+        """
+        async with self._write_lock:
+            await self._request(
+                "POST",
+                API_MODBUS_WRITE,
+                {"reg": str(register), "value": str(value), "fc": str(fc)},
+            )
+
+            deadline = asyncio.get_running_loop().time() + WRITE_TIMEOUT
+            while True:
+                await asyncio.sleep(WRITE_POLL_INTERVAL)
+                status = await self._request("GET", API_MODBUS_WRITE)
+                state = status.get("state")
+                if state == "done":
+                    read_back = status.get("read_back")
+                    return int(read_back) if read_back is not None else value
+                if state == "error":
+                    raise GatewayWriteError(
+                        str(status.get("error") or f"zapis rejestru {register} nieudany")
+                    )
+                if asyncio.get_running_loop().time() > deadline:
+                    raise GatewayWriteError(
+                        f"zapis rejestru {register}: brak odpowiedzi bramki "
+                        f"w {WRITE_TIMEOUT:.0f} s"
+                    )
 
     async def async_ota_check(self) -> None:
         await self._request("POST", API_OTA_CHECK)

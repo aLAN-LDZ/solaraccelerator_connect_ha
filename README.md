@@ -75,15 +75,49 @@ oznacza magistralę pracującą bez przerwy. Portal o tym ostrzega, ale nie blok
   magistrali, wersja mapy rejestrów, RSSI, czas pracy i wersja firmware bramki.
   Dotąd te liczby widać było wyłącznie w portalu bramki.
 * **Nastawy** (`set_*`) — domyślnie wyłączone, jako sensory diagnostyczne.
-  Sterowanie nimi przyjdzie w kolejnym etapie.
+  Do zmieniania służą osobne encje sterujące, opisane niżej.
 
 Metryka, której bramka nie odczytała, **nie jest zerowana** — encja idzie
 w `unavailable` dopiero po trzech kolejnych odpytaniach bez niej. Brak wartości
 znaczy „nie wiem", nigdy „zero".
 
+## Ręczne sterowanie falownikiem
+
+Wymaga firmware bramki **0.1.14 lub nowszego** — starsze nie mają endpointu
+zapisu i encje sterujące zgłoszą błąd przy próbie ustawienia.
+
+31 encji, dokładnie te nastawy, którymi steruje optymalizator:
+
+| Encja | Czego dotyczy |
+|---|---|
+| `select` — tryb pracy | Selling First / Zero Export To Load / Zero Export To CT |
+| `time` — harmonogram 1-6: godzina | początek slotu Time of Use |
+| `number` — harmonogram 1-6: moc | moc ładowania w slocie [W] |
+| `number` — harmonogram 1-6: SOC | docelowy stan naładowania [%] |
+| `select` — harmonogram 1-6: ładowanie | Disabled / Grid / Generator / Both |
+| `number` — maks. prąd ładowania i rozładowania | limity prądu DC baterii [A] |
+| `number` — moc PV | limit produkcji (curtailment) [W] |
+| `number` — limit oddawania nadwyżki | ile wolno wyeksportować [W] |
+| `number` — limit mocy z sieci | próg peak shavingu [W] |
+| `switch` — peak shaving z sieci | włącznik peak shavingu |
+
+**Zapis jest potwierdzany odczytem.** Bramka próbuje dwa razy, po czym czyta
+rejestr z powrotem — Deye potrafi potwierdzić zapis i po chwili cofnąć nastawę.
+Encja przestawia się dopiero, gdy falownik naprawdę przyjął wartość; w przeciwnym
+razie dostajesz błąd z powodem, a nie ciche „ustawione".
+
+**Sąsiednie bity zostają nietknięte.** Dwie nastawy nie mają własnego rejestru:
+źródło ładowania slotu dzieli rejestr z flagą sprzedaży, a peak shaving sieci
+siedzi w rejestrze zbiorczym obok trzech innych przełączników. Zapis idzie przez
+odczyt-modyfikację-zapis, więc zmiana jednej nastawy nie gasi pozostałych.
+Gdy bieżącej wartości rejestru brakuje, zapis jest **odmawiany**, a nie zgadywany.
+
+> **Jeśli instalacja jest sterowana przez optymalizator Solar Accelerator**,
+> ręczna zmiana obowiązuje do najbliższego pełnego zegara — o pełnej godzinie
+> optymalizator wgra swój plan i nadpisze nastawy. To jest zamierzone: encje
+> sterujące służą do testów, diagnostyki i pracy bez optymalizatora.
+
 ## Czego jeszcze nie ma
 
-* **Sterowanie falownikiem.** Na razie integracja tylko czyta. Zapis nastaw
-  z Home Assistanta jest następnym krokiem.
 * **Historia.** Bramka trzyma tylko bieżący snapshot — wykresy buduje recorder
   Home Assistanta od momentu instalacji.
