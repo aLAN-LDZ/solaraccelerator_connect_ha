@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -26,6 +26,7 @@ from .const import (
     MIN_POLL_INTERVAL,
     MISSING_TOLERANCE,
     STATUS_INTERVAL,
+    UPDATE_FAILURE_TOLERANCE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,6 +49,11 @@ class GatewayData:
     last_ok: datetime | None = None
     age_s: float | None = None
     read_period_s: float | None = None
+    # Ile odpytań bramki przepadło od startu HA i ile z rzędu przepada teraz.
+    # Widoczne jako encja diagnostyczna: „co jakiś czas wypada" przestaje być
+    # wrażeniem, a staje się liczbą, którą widać na wykresie.
+    failed_polls: int = 0
+    consecutive_failures: int = 0
 
     @property
     def inverter_online(self) -> bool:
@@ -78,6 +84,8 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
         self._read_period_s: float | None = None
         self._new_key_listeners: list[Callable[[set[str]], None]] = []
         self._status_due = 0.0
+        self._failed_polls = 0
+        self._consecutive_failures = 0
 
         super().__init__(
             hass,
@@ -116,8 +124,9 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
             # Użytkownik ustawił albo zmienił hasło portalu po instalacji.
             raise ConfigEntryAuthFailed(str(err)) from err
         except (GatewayNotReady, GatewayError) as err:
-            raise UpdateFailed(str(err)) from err
+            return self._tolerate_failure(err, previous)
 
+        self._consecutive_failures = 0
         values = readings_to_values(readings)
         self._track_missing(values)
         self._apply_gateway_interval(readings, status)
@@ -129,6 +138,7 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
             last_ok=_last_ok_timestamp(readings),
             age_s=_data_age_seconds(readings),
             read_period_s=self._track_read_period(readings),
+            failed_polls=self._failed_polls,
         )
         self._notify_new_keys(values)
         return data
@@ -138,8 +148,52 @@ class SaConnectCoordinator(DataUpdateCoordinator[GatewayData]):
         now = self.hass.loop.time()
         if previous.status and now < self._status_due:
             return previous.status
+        try:
+            status = await self.api.async_get_status()
+        except (GatewayAuthError, GatewayNotReady):
+            # Hasło portalu i powrót bramki do kreatora to realne zmiany stanu,
+            # a nie zgubiony pakiet — te muszą dojść do użytkownika.
+            raise
+        except GatewayError:
+            # Wersja firmware, RSSI czy pamięć nie zmieniają się w sekundę.
+            # Gdy to DRUGIE zapytanie cyklu przepadnie, a odczyty właśnie
+            # przyszły, byłoby marnotrawstwem wywrócić przez nie cały cykl —
+            # zostajemy przy poprzednim stanie i pytamy w następnym.
+            if not previous.status:
+                raise
+            _LOGGER.debug("Stan bramki nie przyszedł — zostaję przy poprzednim")
+            return previous.status
         self._status_due = now + STATUS_INTERVAL
-        return await self.api.async_get_status()
+        return status
+
+    def _tolerate_failure(self, err: Exception, previous: GatewayData) -> GatewayData:
+        """Pojedyncze zgubione odpytanie to jeszcze nie awaria bramki.
+
+        Bramka jest ESP32 na Wi-Fi: zerwane połączenie keep-alive czy zgubiony
+        pakiet zdarzają się kilka razy na godzinę. Bez tej tolerancji każdy taki
+        przypadek gasił WSZYSTKIE encje na jeden cykl — w historii zostawał ząb
+        „Niedostępny", statystyki miały dziurę, a automatyzacje reagujące na
+        `unavailable` dostawały fałszywy alarm. Dane wciąż są: leżą w RAM-ie
+        bramki i przyjdą w następnym cyklu, kilka sekund później.
+
+        Dopiero seria nieudanych cykli znaczy, że bramki naprawdę nie ma —
+        i wtedy encje mają zgasnąć, bo pokazywałyby stan sprzed minut.
+        """
+        self._failed_polls += 1
+        self._consecutive_failures += 1
+        if previous.readings and self._consecutive_failures <= UPDATE_FAILURE_TOLERANCE:
+            _LOGGER.info(
+                "Bramka nie odpowiedziała (%s) — %d/%d, trzymam poprzedni odczyt",
+                err,
+                self._consecutive_failures,
+                UPDATE_FAILURE_TOLERANCE,
+            )
+            return replace(
+                previous,
+                failed_polls=self._failed_polls,
+                consecutive_failures=self._consecutive_failures,
+            )
+        raise UpdateFailed(str(err)) from err
 
     def _track_missing(self, values: dict[str, object]) -> None:
         for key in self._known_keys | set(values):

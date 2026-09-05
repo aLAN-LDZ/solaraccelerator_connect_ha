@@ -280,6 +280,9 @@
       "output_l3_power": {
         "name": "Output L3 Power"
       },
+      "poll_errors": {
+        "name": "Failed gateway polls"
+      },
       "poll_interval": {
         "name": "Poll interval"
       },

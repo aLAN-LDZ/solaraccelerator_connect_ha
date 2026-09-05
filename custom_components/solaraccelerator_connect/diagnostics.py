@@ -29,6 +29,11 @@ async def async_get_config_entry_diagnostics(
             key: value for key, value in data.readings.items() if key != "items"
         },
         "metric_keys": sorted(data.values),
+        # Ile odpytań przepadło — pierwsza rzecz, o którą pytamy przy
+        # zgłoszeniu „encje co jakiś czas robią się niedostępne".
+        "failed_polls": data.failed_polls,
+        "consecutive_failures": data.consecutive_failures,
+        "last_update_success": coordinator.last_update_success,
         "update_interval_s": (
             coordinator.update_interval.total_seconds()
             if coordinator.update_interval

@@ -32,6 +32,24 @@ MIN_POLL_INTERVAL = 0.5
 STATUS_INTERVAL = 60.0
 REQUEST_TIMEOUT = 5.0
 
+# === Odporność na chwilowe zerwania ===
+# Bramka to ESP32 na Wi-Fi, a nie serwer w szafie: pojedyncze zapytanie potrafi
+# przepaść kilka razy na godzinę (zerwane połączenie keep-alive, retransmisja,
+# chwila bez pamięci na odpowiedź). Nie znaczy to, że danych nie ma — one wciąż
+# leżą w RAM-ie bramki i przyjdą przy następnym odpytaniu za kilka sekund.
+#
+# Ile razy ponawiamy JEDNO zapytanie w obrębie cyklu, zanim uznamy je za
+# nieudane. Dotyczy wyłącznie odczytów (GET) — zapisu nie wolno powtarzać
+# w ciemno, bo nie wiemy, czy pierwszy nie wszedł.
+REQUEST_RETRIES = 1
+RETRY_BACKOFF = 0.3
+
+# Ile kolejnych nieudanych cykli tolerujemy, zanim WSZYSTKIE encje pójdą
+# w `unavailable`. Bez tego jedno zgubione zapytanie gasiło całe urządzenie
+# na jeden cykl — w historii encji zostawał ząb „Niedostępny", a automatyzacje
+# na `state` dostawały fałszywy alarm.
+UPDATE_FAILURE_TOLERANCE = 3
+
 # Ile kolejnych odpowiedzi bez danego klucza czekamy, zanim encja pójdzie
 # w `unavailable`. Bramka POMIJA metryki z nieudanych bloków Modbus, więc
 # pojedyncza dziura jest normalna i nie powinna rwać wykresu.

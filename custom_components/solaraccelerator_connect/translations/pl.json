@@ -290,6 +290,9 @@
       "output_l3_power": {
         "name": "Moc wyjściowa L3"
       },
+      "poll_errors": {
+        "name": "Nieudane odpytania bramki"
+      },
       "poll_interval": {
         "name": "Interwał odpytywania"
       },

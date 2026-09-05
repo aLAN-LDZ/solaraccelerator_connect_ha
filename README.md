@@ -72,14 +72,37 @@ oznacza magistralę pracującą bez przerwy. Portal o tym ostrzega, ale nie blok
 * **Stany** — `Falownik odpowiada` i `Odczyt niekompletny` (część bloków Modbus
   nie przeszła; dane są, ale niepełne).
 * **Diagnostyka** — czas cyklu, bloki OK/wszystkie, nieudane cykle, ostatni błąd
-  magistrali, wersja mapy rejestrów, RSSI, czas pracy i wersja firmware bramki.
-  Dotąd te liczby widać było wyłącznie w portalu bramki.
+  magistrali, wersja mapy rejestrów, RSSI, czas pracy i wersja firmware bramki
+  oraz *Nieudane odpytania bramki* (patrz niżej). Dotąd te liczby widać było
+  wyłącznie w portalu bramki.
 * **Nastawy** (`set_*`) — domyślnie wyłączone, jako sensory diagnostyczne.
   Do zmieniania służą osobne encje sterujące, opisane niżej.
 
 Metryka, której bramka nie odczytała, **nie jest zerowana** — encja idzie
 w `unavailable` dopiero po trzech kolejnych odpytaniach bez niej. Brak wartości
 znaczy „nie wiem", nigdy „zero".
+
+## Zerwane połączenia
+
+Bramka jest ESP32 na Wi-Fi, nie serwerem w szafie: pojedyncze zapytanie potrafi
+przepaść kilka razy na godzinę — zerwane połączenie keep-alive, zgubiony pakiet,
+chwila bez ciągłego bloku pamięci na odpowiedź. Integracja **nie traktuje tego
+jak awarii**:
+
+1. zgubiony odczyt jest **ponawiany raz** w tym samym cyklu,
+2. nieudany cykl **nie gasi encji** — trzymamy poprzedni odczyt (dane i tak leżą
+   w RAM-ie bramki i przyjdą za kilka sekund),
+3. dopiero **cztery nieudane cykle z rzędu** przestawiają encje w `unavailable`,
+   bo wtedy bramki naprawdę nie ma i pokazywanie danych sprzed minut byłoby
+   kłamstwem.
+
+Bez tego każde zgubione zapytanie zostawiało w historii KAŻDEJ encji ząb
+„Niedostępny" i wyzwalało automatyzacje pilnujące `unavailable`.
+
+Skala zjawiska jest widoczna: sensor **Nieudane odpytania bramki** liczy zgubione
+odpytania od startu Home Assistanta (atrybut `consecutive_failures` pokazuje
+bieżącą serię). Kilka na godzinę to normalne Wi-Fi; kilkadziesiąt znaczy słaby
+zasięg albo przeciążoną bramkę — wtedy warto zajrzeć w RSSI i wolną pamięć.
 
 ## Ręczne sterowanie falownikiem
 

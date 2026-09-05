@@ -243,6 +243,19 @@ DIAGNOSTIC_SENSORS: tuple[DiagnosticSpec, ...] = (
         translation_key="firmware_version",
         value=lambda d: _status(d, "firmware_version"),
     ),
+    # Ile odpytań bramki przepadło od startu HA. Rośnie o jeden przy każdym
+    # zgubionym cyklu — także tym przemilczanym, który nie zdążył zgasić encji.
+    # Dzięki temu „bramka co jakiś czas wypada" da się obejrzeć na wykresie
+    # i odróżnić słaby zasięg od problemu z samą bramką.
+    DiagnosticSpec(
+        key="poll_errors",
+        translation_key="poll_errors",
+        value=lambda d: d.failed_polls,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        attributes=lambda d: _drop_empty(
+            {"consecutive_failures": d.consecutive_failures or None}
+        ),
+    ),
 )
 
 
